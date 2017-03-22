@@ -1,0 +1,24 @@
+<div class="jumbotron">
+  <h2><%= gettext "%{name}", name: "AirWeb" %></h2>
+  <p class="lead">Om du tröttnat på att räkna timmar...</p>
+</div>
+
+<div class="row">
+  <div class="col-lg-6">
+    <h4>Tider</h4>
+    <form action="<%= #quote_path(@conn, :process) %>" method="post">
+      <input type="hidden" name="csrf_token" value="<%= #csrf_token(@conn) %>">
+      <textarea name="user_input" rows="20" style="width:100%;">
+        <%= @user_input %>
+      </textarea>
+      <input type="submit" value="Räkna ut timmar"/>
+    </form>
+  </div>
+
+  <div class="col-lg-6">
+    <h4>Help</h4>
+    <textarea rows="20" style="width:100%;">
+      <%= @result %>
+    </textarea>
+  </div>
+</div>
