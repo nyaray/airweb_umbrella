@@ -1,13 +1,17 @@
 defmodule Airweb.Web.PageController do
   use Airweb.Web, :controller
 
+  require Logger
+
+  alias Airweb.AirTime, as: AirTime
+
   def index(conn, _params) do
-    render conn, "index.html", params: ""
+    render conn, "index.html", user_input: "", result: "Fyll i och skicka in!"
   end
 
   def process(conn, params) do
     user_input = params["user_input"]
-    result = String.upcase user_input
+    result = AirTime.parse user_input
     render conn, "index.html", user_input: user_input, result: result
   end
 
