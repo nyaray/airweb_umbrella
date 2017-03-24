@@ -1,4 +1,4 @@
-defmodule Airweb.Web.PageControllerTest do
+defmodule Airweb.Web.HomeControllerTest do
   use Airweb.Web.ConnCase
 
   test "GET /", %{conn: conn} do

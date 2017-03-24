@@ -33,7 +33,6 @@ defmodule Airweb.AirTime do
     {:ok, state}
   end
   defp handle_line(state, line) do
-    Logger.debug ["handle_line ", inspect line]
     case Reader.process_line line, state.latest_tag do
       {:ok, cli_result} ->
         updated_state = handle_cli_result state, line, cli_result
@@ -64,11 +63,25 @@ defmodule Airweb.AirTime do
   defp build_output({chunk_sums, tag_sums, chunk_tag_sums, week_total}) do
     # TODO factor lines into functions
     ["",
-     ["daily hours: ", inspect chunk_sums],
-     ["week total:  ", inspect(week_total), " (", inspect(40-week_total), " remaining)"],
-     ["tag sum:     \n  ", interspect tag_sums],
-     ["daily tag sums:\n  ", interspect chunk_tag_sums]]
+     build_daily_output(chunk_sums),
+     build_week_output(week_total),
+     build_tags_output(tag_sums),
+     build_chunk_tags_output(chunk_tag_sums)]
     |> Enum.intersperse("\n")
+  end
+
+  defp build_daily_output(sums), do: ["daily hours: ", inspect sums]
+
+  defp build_week_output(total) do
+    total_out = inspect(total)
+    rem_out = inspect(40-total)
+    ["week total:  ", total_out, " (", rem_out, " remaining)"]
+  end
+
+  defp build_tags_output(sums), do: ["tag sum:     \n  ", interspect sums]
+
+  defp build_chunk_tags_output(chunk_tag_sums) do
+    ["daily tag sums:\n  ", interspect chunk_tag_sums]
   end
 
   defp interspect(enumerable) do
