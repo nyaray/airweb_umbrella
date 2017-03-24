@@ -16,8 +16,8 @@ defmodule Airweb.Web.Router do
   scope "/", Airweb.Web do
     pipe_through :browser # Use the default browser stack
 
-    get "/", PageController, :index
-    post "/", PageController, :process
+    get "/", HomeController, :index
+    post "/", HomeController, :process
   end
 
   # Other scopes may use custom stacks.

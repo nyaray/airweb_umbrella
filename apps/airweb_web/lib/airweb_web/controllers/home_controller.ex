@@ -1,4 +1,4 @@
-defmodule Airweb.Web.PageController do
+defmodule Airweb.Web.HomeController do
   use Airweb.Web, :controller
 
   require Logger
