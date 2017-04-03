@@ -1,5 +1,8 @@
 # Airweb.Umbrella
 
+Starting the app is as easy as `mix phx.server`, if you've done the usual deps
+fetching and building, see `mix help deps` for more information.
+
 TODO
 
 - [x] PoC for computing time spent on projects
