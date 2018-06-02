@@ -6,13 +6,20 @@ defmodule Airweb.Web.HomeController do
   alias Airweb.AirTime, as: AirTime
 
   def index(conn, _params) do
-    render conn, "index.html", user_input: "", result: "Fyll i och skicka in!"
+    render conn, "index.html", user_input: "", result: ""
   end
 
   def process(conn, params) do
     user_input = params["user_input"]
-    result = AirTime.parse user_input
-    render conn, "index.html", user_input: user_input, result: result
+
+    case AirTime.parse(user_input) do
+      {:ook, parse_result} ->
+        result = AirTime.build_output(parse_result)
+        render conn, "index.html", user_input: user_input, result: result
+      _ -> # TODO implement errors...
+        error = "OJOJ, FEL"
+        render conn, "index.html", user_input: user_input, error: error
+    end
   end
 
   def csrf_token(conn) do

@@ -5,12 +5,20 @@ defmodule Airweb.AirTime do
   alias Airweb.Summary, as: Summary
   alias Airweb.TimeRange, as: TimeRange
 
+  @doc ~S"""
+  Interprets `input` as a listing of hours spent, outputing a summary accross
+  both projects and days.
+
+      iex> Airweb.AirTime.parse("Må 08:15-11:45, Foo\n  12:30-17:00\n")
+      {[{"Må", 8.0}], [{"Foo", 8.0}], [%{"Foo" => 8.0}], 8.0}
+
+  """
   def parse(input) do
     line_provider = String.splitter input, "\n"
     Summary.new
     |> parse_loop(line_provider)
     |> Summary.summarize
-    |> output_summary
+    |> (&({:ok, &1})).()
   end
 
   defp parse_loop(state, []), do: state
@@ -55,13 +63,7 @@ defmodule Airweb.AirTime do
   defp parse_time({:interval, i}), do: TimeRange.from_interval i
   defp parse_time({:range, r}), do: TimeRange.from_range r
 
-  defp output_summary(summary) do
-    summary
-    |> build_output()
-  end
-
-  defp build_output({chunk_sums, tag_sums, chunk_tag_sums, week_total}) do
-    # TODO factor lines into functions
+  def build_output({chunk_sums, tag_sums, chunk_tag_sums, week_total}) do
     ["",
      build_daily_output(chunk_sums),
      build_week_output(week_total),
