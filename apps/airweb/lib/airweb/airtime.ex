@@ -10,7 +10,7 @@ defmodule Airweb.AirTime do
   both projects and days.
 
       iex> Airweb.AirTime.parse("Må 08:15-11:45, Foo\n  12:30-17:00\n")
-      {[{"Må", 8.0}], [{"Foo", 8.0}], [%{"Foo" => 8.0}], 8.0}
+      {:ok, {[{"Må", 8.0}], [{"Foo", 8.0}], [%{"Foo" => 8.0}], 8.0}}
 
   """
   def parse(input) do
