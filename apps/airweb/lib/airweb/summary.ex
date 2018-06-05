@@ -10,11 +10,21 @@ defmodule Airweb.Summary do
     SummaryState.create_entry(diff, tag, chunk_meta)
   end
 
-  def push(s=%SummaryState{}, e=%Entry{}) do
-    SummaryState.push_entry(s, e)
+  def push(s=%SummaryState{}, record) do
+    case record do
+      e = %Entry{} -> SummaryState.push_entry(s, e)
+      err = {:error, _reason} -> SummaryState.push_error(s, err)
+    end
   end
 
-  def summarize(state=%SummaryState{}) do
+  def externalize(state=%SummaryState{ :errors => errors }) do
+    case errors do
+      [] -> {:ok, summarize(state)}
+      _ -> {:error, errors}
+    end
+  end
+
+  defp summarize(state=%SummaryState{}) do
     Logger.debug "[summarize]\n#{inspect state}"
     chunk_sums       = SummaryState.sum_chunks state
     tag_sums         = SummaryState.sum_tag_chunks state

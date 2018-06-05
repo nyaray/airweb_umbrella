@@ -4,6 +4,7 @@ defmodule Airweb.Reader do
   def process_line(line, latest_tag) do
     Logger.debug ["process_line ", inspect line]
     with :ok                      <- check_line_length(line),
+         :ok                      <- check_line_format(line),
          {line_content, line_tag} <- split_line(line),
          {:ok, safe_time}         <- sanitize_line(line_content) do
            build_meta(line, safe_time, line_tag, latest_tag)
@@ -11,12 +12,18 @@ defmodule Airweb.Reader do
   end
 
   defp check_line_length(line) do
-    # TODO debug line!
     Logger.debug ["check_line_length ", inspect line]
     case line |> String.trim_trailing |> String.length do
       0 -> :halt
       _ -> :ok
     end
+  end
+
+  defp check_line_format(line) do
+    # TODO unbreak swap files and build
+    # TODO write doctest+tests to drive out regex's
+    #cond line =~ ~r/(^\w)|(^  )\w+\s+\d{2}:\d{2}/iu
+    :ok
   end
 
   defp split_line(line) do

@@ -17,8 +17,7 @@ defmodule Airweb.AirTime do
     line_provider = String.splitter input, "\n"
     Summary.new
     |> parse_loop(line_provider)
-    |> Summary.summarize
-    |> (&({:ok, &1})).()
+    |> Summary.externalize
   end
 
   defp parse_loop(state, []), do: state
@@ -36,18 +35,18 @@ defmodule Airweb.AirTime do
 
   defp handle_line(_state, []), do: :halt
   defp handle_line(_state, :eof), do: :halt
-  defp handle_line(state, {:error, reason}) do
+  defp handle_line(state, err={:error, reason}) do
     Logger.error ["Input error: ", inspect reason]
-    {:ok, state}
+    handle_line_error state, err
   end
   defp handle_line(state, line) do
     case Reader.process_line line, state.latest_tag do
       {:ok, cli_result} ->
         updated_state = handle_cli_result state, line, cli_result
         {:ok, updated_state}
-      {:error, reason} ->
+      err={:error, reason} ->
         IO.puts ["Input error: ", inspect(reason), " (", inspect(line), ")"]
-        {:ok, state}
+        handle_line_error state, err
       :halt ->
         :halt
     end
@@ -62,6 +61,8 @@ defmodule Airweb.AirTime do
 
   defp parse_time({:interval, i}), do: TimeRange.from_interval i
   defp parse_time({:range, r}), do: TimeRange.from_range r
+
+  defp handle_line_error(state, error), do: {:ok, Summary.push(state, error)}
 
   def build_output({chunk_sums, tag_sums, chunk_tag_sums, week_total}) do
     ["",

@@ -6,14 +6,15 @@ defmodule Airweb.SummaryState do
             chunk_tags: [],
             current_chunk: [],
             current_chunk_tags: %{},
+            errors: [],
             latest_chunk_tag: :no_tag,
             latest_tag: :no_tag,
             tag_chunks: %{}
 
   def create_entry(diff, tag, chunk_meta) do
     %Entry{:chunk_meta => chunk_meta,
-                        :diff       => diff,
-                        :tag        => tag}
+           :diff       => diff,
+           :tag        => tag}
   end
 
   def push_entry(s=%SummaryState{}, e=%Entry{}) do
@@ -21,6 +22,10 @@ defmodule Airweb.SummaryState do
     |> rotate_chunk(e.chunk_meta)
     |> push_chunk_diff(e.diff)
     |> push_tag_diff(e.tag, e.diff)
+  end
+
+  def push_error(s=%SummaryState{ :errors => errors }, reason) do
+    %SummaryState{ s | :errors => [ reason | errors ] }
   end
 
   def sum_chunks(s=%SummaryState{}) do
