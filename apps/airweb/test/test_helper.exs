@@ -1,4 +1,4 @@
 Application.start :stream_data
 
-ExUnit.start()
+ExUnit.start(timeout: 250)
 
