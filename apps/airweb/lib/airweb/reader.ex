@@ -20,7 +20,8 @@ defmodule Airweb.Reader do
   """
   def process_line(line, latest_tag) do
     Logger.debug ["process_line ", inspect line]
-    with :ok                      <- check_line_length(line),
+    with line                     <- cannonicalize_line(line),
+         :ok                      <- check_line_length(line),
          :ok                      <- check_line_format(line),
          {line_content, line_tag} <- split_line(line),
          {:ok, safe_time}         <- sanitize_line(line_content) do
@@ -28,9 +29,13 @@ defmodule Airweb.Reader do
     end
   end
 
+  defp cannonicalize_line(line) do
+    line |> String.trim_trailing
+  end
+
   defp check_line_length(line) do
     Logger.debug ["check_line_length ", inspect line]
-    case line |> String.trim_trailing |> String.length do
+    case String.length line do
       0 -> :halt
       _ -> :ok
     end
@@ -71,7 +76,6 @@ defmodule Airweb.Reader do
   defp sanitize_range(range) do
     range_extract =
       range
-      |> Enum.map(&String.trim_trailing/1)
       |> Enum.map(&String.replace(&1, ~r/[^0-9:-]/, ""))
     {:ok, {:range, range_extract}}
   end

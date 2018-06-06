@@ -15,10 +15,14 @@
   </div>
 </div>
 
-<%= if assigns[:error] do %>
+<%= if assigns[:errors] do %>
 <div class="row">
   <div class="col-lg-12">
-    <p><%= @error %></p>
+    <h4>Fel</h4>
+    <ul>
+      <%= for error <- @errors do %>
+        <li><%= error %></li>
+      <% end %>
   </div>
 </div>
 <% end %>
