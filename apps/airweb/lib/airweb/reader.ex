@@ -1,6 +1,23 @@
 defmodule Airweb.Reader do
   require Logger
 
+  @doc ~S"""
+  Parses a timesheet item expected to contain the following parts:
+
+  - Either a "chunk" tag (e.g. a day) OR some amount of white space
+  - Either a time range (e.g. 08:00-10:15) OR a time interval (e.g. 02:15)
+  - An (optional) activity tag except for in the beginning of chunks
+
+      iex> Airweb.Reader.process_line("Må 08:15-11:45, Bar", :fallback)
+      {:ok, {{:range, ["08:15", "11:45"]}, "Bar", true, "Må"}}
+
+      iex> Airweb.Reader.process_line("  10:30-14:15", :fallback)
+      {:ok, {{:range, ["10:30", "14:15"]}, :fallback, false, :no_tag}}
+
+      iex> Airweb.Reader.process_line("14:00", :fallback)
+      {:error, {:bad_format, "14:00"}}
+
+  """
   def process_line(line, latest_tag) do
     Logger.debug ["process_line ", inspect line]
     with :ok                      <- check_line_length(line),
@@ -20,10 +37,11 @@ defmodule Airweb.Reader do
   end
 
   defp check_line_format(line) do
-    # TODO unbreak swap files and build
-    # TODO write doctest+tests to drive out regex's
-    #cond line =~ ~r/(^\w)|(^  )\w+\s+\d{2}:\d{2}/iu
-    :ok
+    cond do
+      line =~ ~r/^\w+ +\d{2}:\d{2}(-\d{2}:\d{2})?, \S.*$/iu -> :ok
+      line =~ ~r/^ +\d{2}:\d{2}(-\d{2}:\d{2})?(, \S.*)?$/iu -> :ok
+      true -> {:error, {:bad_format, line}}
+    end
   end
 
   defp split_line(line) do

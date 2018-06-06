@@ -1,7 +1,10 @@
 defmodule Airweb.AirTimeTest do
+  require Logger
 
   use ExUnit.Case, async: true
   use ExUnitProperties
+
+  import ExUnit.CaptureIO
 
   alias Airweb.AirTime, as: AirTime
 
@@ -51,19 +54,18 @@ defmodule Airweb.AirTimeTest do
         15.0}}                                            # hours worked
   end
 
-  test "that parse/1 reports an error" do
+  test "that parse/1 reports an error for chunk items" do
     input = """
     Må 08:00, Bar
       03:00 Foo
     Ti 04:00, Bar
     """
 
-    assert AirTime.parse(input) ==
-      {:ok, {
-        [{"Må", 8.0}, {"Ti", 4.0}],        # by day
-        [{"Bar", 12.0}, ],                  # by project
-        [%{"Bar" => 8.0}, %{"Bar" => 4.0}], # daily project view
-        12.0}}                              # hours worked
+    fun = fn -> assert AirTime.parse(input) ==
+      {:error, [error: {:bad_format, "  03:00 Foo"}]}
+    end
+
+    assert capture_io(fun) =~ ~r/Input error.*bad_format/ui
   end
 
   #def generate_timesheet() do
