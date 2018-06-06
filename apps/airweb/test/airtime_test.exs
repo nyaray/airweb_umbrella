@@ -4,7 +4,7 @@ defmodule Airweb.AirTimeTest do
   use ExUnit.Case, async: true
   use ExUnitProperties
 
-  import ExUnit.CaptureIO
+  import ExUnit.CaptureLog
 
   alias Airweb.AirTime, as: AirTime
 
@@ -54,7 +54,36 @@ defmodule Airweb.AirTimeTest do
         15.0}}                                            # hours worked
   end
 
-  test "that parse/1 reports an error for chunk items" do
+  test "that parse/1 reports an error for first item in chunk" do
+    input = """
+    Må 08:00 Bar
+      03:00, Foo
+    Ti 04:00, Bar
+    """
+
+    fun = fn -> assert AirTime.parse(input) ==
+      {:error, [{:bad_format, "Må 08:00 Bar"}]}
+    end
+
+    assert capture_log(fun) =~ ~r/Input error.*bad_format/ui
+  end
+
+  test "that parse/1 reports an error for first item in second chunk" do
+    input = """
+    Må 08:00, Bar
+      03:00, Foo
+    Ti 04:00 Bar
+      04:00, Foo
+    """
+
+    fun = fn -> assert AirTime.parse(input) ==
+      {:error, [{:bad_format, "Ti 04:00 Bar"}]}
+    end
+
+    assert capture_log(fun) =~ ~r/Input error.*bad_format/ui
+  end
+
+  test "that parse/1 reports an error for last item in chunk" do
     input = """
     Må 08:00, Bar
       03:00 Foo
@@ -62,10 +91,25 @@ defmodule Airweb.AirTimeTest do
     """
 
     fun = fn -> assert AirTime.parse(input) ==
-      {:error, [error: {:bad_format, "  03:00 Foo"}]}
+      {:error, [{:bad_format, "  03:00 Foo"}]}
     end
 
-    assert capture_io(fun) =~ ~r/Input error.*bad_format/ui
+    assert capture_log(fun) =~ ~r/Input error.*bad_format/ui
+  end
+
+  test "that parse/1 reports multiple errors for a timesheet" do
+    input = """
+    Må 08:00, Bar
+      03:00 Foo
+    Ti 04:00 Bar
+    """
+
+    fun = fn -> assert AirTime.parse(input) ==
+      {:error, [{:bad_format, "  03:00 Foo"},
+                {:bad_format, "Ti 04:00 Bar"}]}
+    end
+
+    assert capture_log(fun) =~ ~r/Input error.*bad_format/ui
   end
 
   #def generate_timesheet() do
@@ -83,3 +127,4 @@ defmodule Airweb.AirTimeTest do
   #end
 
 end
+

@@ -16,7 +16,7 @@ defmodule Airweb.Web.HomeController do
       {:ok, parse_result} ->
         result = AirTime.build_output(parse_result)
         render conn, "index.html", user_input: user_input, result: result
-      {:error, errors} -> # TODO implement errors...
+      {:error, errors} ->
         render conn, "index.html",
           user_input: user_input,
           errors: serialize_errors(errors)

@@ -20,6 +20,7 @@ defmodule Airweb.AirTime do
     |> Summary.externalize
   end
 
+  # TODO switch to mutual recursion with handle_line
   defp parse_loop(state, []), do: state
   defp parse_loop(state, line_provider) do
     [ line ] = Enum.take line_provider, 1
@@ -36,7 +37,7 @@ defmodule Airweb.AirTime do
   defp handle_line(_state, []), do: :halt
   defp handle_line(_state, :eof), do: :halt
   defp handle_line(state, err={:error, reason}) do
-    Logger.error ["Input error: ", inspect reason]
+    Logger.warn ["Input error: ", inspect reason]
     handle_line_error state, err
   end
   defp handle_line(state, line) do
@@ -45,7 +46,7 @@ defmodule Airweb.AirTime do
         updated_state = handle_cli_result state, line, cli_result
         {:ok, updated_state}
       err={:error, reason} ->
-        IO.puts ["Input error: ", inspect(reason), " (", inspect(line), ")"]
+        Logger.warn ["Input error: ", inspect(reason), " (", inspect(line), ")"]
         handle_line_error state, err
       :halt ->
         :halt
@@ -90,7 +91,7 @@ defmodule Airweb.AirTime do
   defp interspect(enumerable) do
     enumerable
     |> Enum.map(&(inspect &1))
-    |> Enum.intersperse("\n  ") # TODO factor out @indent
+    |> Enum.intersperse("\n  ")
   end
 end
 

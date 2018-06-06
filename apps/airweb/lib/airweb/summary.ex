@@ -13,25 +13,26 @@ defmodule Airweb.Summary do
   def push(s=%SummaryState{}, record) do
     case record do
       e = %Entry{} -> SummaryState.push_entry(s, e)
-      err = {:error, _reason} -> SummaryState.push_error(s, err)
+      {:error, reason} -> SummaryState.push_error(s, reason)
     end
   end
 
   def externalize(state=%SummaryState{ :errors => errors }) do
     case errors do
       [] -> {:ok, summarize(state)}
-      _ -> {:error, errors}
+      _ -> {:error, Enum.reverse errors}
     end
   end
 
   defp summarize(state=%SummaryState{}) do
-    Logger.debug "[summarize]\n#{inspect state}"
+    Logger.debug fn -> "[summarize]\n#{inspect state}" end
+
     chunk_sums       = SummaryState.sum_chunks state
     tag_sums         = SummaryState.sum_tag_chunks state
     chunk_tag_sums   = SummaryState.get_chunk_tags state
     chunk_tag_totals = Enum.map(chunk_tag_sums, &tally_chunk/1)
-    week_total       = Enum.reduce chunk_sums, 0,
-      fn ({_chunk_tag, sum}, acc) -> acc + sum end
+    week_total       =
+      Enum.reduce chunk_sums, 0, fn ({_chunk_tag, sum}, acc) -> acc + sum end
 
     # sanity check
     chunk_total = week_total

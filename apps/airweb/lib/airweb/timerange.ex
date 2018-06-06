@@ -1,4 +1,19 @@
 defmodule Airweb.TimeRange do
+  @moduledoc """
+  Parsing of intervals (e.g. 2:15) and ranges (e.g. 08:15-10:30) of time.
+
+  ## Examples
+
+      iex> TimeRange.from_interval "14:00"
+      {:ok, 14.0}
+
+      iex> TimeRange.from_range ["08:00", "11:45"]
+      {:ok, 3.75}
+
+  """
+
+  require Logger
+
   def from_interval(line) do
     from_range ["00:00", "#{line}"]
   end
@@ -11,7 +26,7 @@ defmodule Airweb.TimeRange do
     else
       l when is_list(l) -> {:error, :bad_range}
       e={:error, _reason} ->
-        IO.puts "TimeRange.from_diff #{inspect e}:#{inspect range}"
+        Logger.warn "TimeRange.from_diff #{inspect e}:#{inspect range}"
         e
     end
   end
@@ -25,8 +40,8 @@ defmodule Airweb.TimeRange do
     |> Enum.map(&(Time.from_iso8601/1))
   end
 
-  defp hour_diff(startTime, endTime) do
-    diff = min2hour(time2min(endTime) - time2min(startTime))
+  defp hour_diff(start_time, end_time) do
+    diff = min2hour(time2min(end_time) - time2min(start_time))
     diff + hour_diff_complement(diff)
   end
 
