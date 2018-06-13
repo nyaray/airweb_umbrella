@@ -3,4 +3,3 @@ defmodule Airweb.Entry do
             diff: nil,
             tag: nil
 end
-

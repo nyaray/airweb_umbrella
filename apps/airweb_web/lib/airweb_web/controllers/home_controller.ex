@@ -6,7 +6,7 @@ defmodule Airweb.Web.HomeController do
   alias Airweb.AirTime, as: AirTime
 
   def index(conn, _params) do
-    render conn, "index.html", user_input: "", result: ""
+    render(conn, "index.html", user_input: "", result: "")
   end
 
   def process(conn, params) do
@@ -15,11 +15,10 @@ defmodule Airweb.Web.HomeController do
     case AirTime.parse(user_input) do
       {:ok, parse_result} ->
         result = AirTime.build_output(parse_result)
-        render conn, "index.html", user_input: user_input, result: result
+        render(conn, "index.html", user_input: user_input, result: result)
+
       {:error, errors} ->
-        render conn, "index.html",
-          user_input: user_input,
-          errors: serialize_errors(errors)
+        render(conn, "index.html", user_input: user_input, errors: serialize_errors(errors))
     end
   end
 
@@ -31,5 +30,4 @@ defmodule Airweb.Web.HomeController do
     errors
     |> Enum.map(&inspect/1)
   end
-
 end

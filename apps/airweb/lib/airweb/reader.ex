@@ -19,16 +19,15 @@ defmodule Airweb.Reader do
 
   """
   def process_line(dirty_line, latest_tag) do
-    Logger.debug ["process_line dirty:", inspect dirty_line]
-    line = String.trim_trailing dirty_line
+    Logger.debug(["process_line dirty:", inspect(dirty_line)])
+    line = String.trim_trailing(dirty_line)
 
-    Logger.debug ["process_line clean:", inspect line]
+    Logger.debug(["process_line clean:", inspect(line)])
 
-    with :ok    <- check_line_length(line),
-         :ok    <- check_line_format(line),
+    with :ok <- check_line_length(line),
+         :ok <- check_line_format(line),
          tokens <- lex_line(line),
-         time   <- cannonicalize_line_time(tokens["time"])
-    do
+         time <- cannonicalize_line_time(tokens["time"]) do
       build_meta(line, time, tokens, latest_tag)
     end
   end
@@ -50,9 +49,9 @@ defmodule Airweb.Reader do
   end
 
   defp cannonicalize_line_time(line) do
-    case String.split line, "-" do
+    case String.split(line, "-") do
       [interval] -> {:interval, interval}
-      r=[_start, _stop] -> {:range, r}
+      r = [_start, _stop] -> {:range, r}
     end
   end
 
@@ -60,16 +59,17 @@ defmodule Airweb.Reader do
     tag =
       case Map.get(tokens, "tag") do
         "" -> latest_tag
-        tag -> tag |> String.trim
+        tag -> tag |> String.trim()
       end
+
     chunk_start = line =~ ~r/^\S/iu
+
     chunk_tag =
       case Map.get(tokens, "chunk") do
-        ""        -> :no_tag
-        chunk_tag -> chunk_tag |> String.trim
+        "" -> :no_tag
+        chunk_tag -> chunk_tag |> String.trim()
       end
+
     {:ok, {time, tag, chunk_start, chunk_tag}}
   end
-
 end
-

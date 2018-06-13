@@ -2,9 +2,7 @@ defmodule Airweb.Umbrella.Mixfile do
   use Mix.Project
 
   def project do
-    [apps_path: "apps",
-     start_permanent: Mix.env == :prod,
-     deps: deps()]
+    [apps_path: "apps", start_permanent: Mix.env() == :prod, deps: deps()]
   end
 
   # Dependencies can be Hex packages:
@@ -20,7 +18,9 @@ defmodule Airweb.Umbrella.Mixfile do
   # Dependencies listed here are available only for this project
   # and cannot be accessed from applications inside the apps folder
   defp deps do
-    [{:credo, "~> 0.9.1", only: [:dev, :test], runtime: false},
-     {:stream_data, "~> 0.1", only: :test}]
+    [
+      {:credo, "~> 0.9.1", only: [:dev, :test], runtime: false},
+      {:stream_data, "~> 0.1", only: :test}
+    ]
   end
 end

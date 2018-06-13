@@ -7,7 +7,7 @@ defmodule Airweb.Web.Application do
     # Define workers and child supervisors to be supervised
     children = [
       # Start the endpoint when the application starts
-      supervisor(Airweb.Web.Endpoint, []),
+      supervisor(Airweb.Web.Endpoint, [])
       # Start your own worker by calling: Airweb.Web.Worker.start_link(arg1, arg2, arg3)
       # worker(Airweb.Web.Worker, [arg1, arg2, arg3]),
     ]

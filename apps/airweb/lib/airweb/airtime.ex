@@ -14,84 +14,93 @@ defmodule Airweb.AirTime do
 
   """
   def parse(input) do
-    line_provider = String.splitter input, "\n"
-    Summary.new
+    line_provider = String.splitter(input, "\n")
+
+    Summary.new()
     |> parse_loop(line_provider)
-    |> Summary.externalize
+    |> Summary.externalize()
+  end
+
+  def build_output({chunk_sums, tag_sums, chunk_tag_sums, week_total}) do
+    [
+      "",
+      build_daily_output(chunk_sums),
+      build_week_output(week_total),
+      build_tags_output(tag_sums),
+      build_chunk_tags_output(chunk_tag_sums)
+    ]
+    |> Enum.intersperse("\n")
   end
 
   # TODO switch to mutual recursion with handle_line
   defp parse_loop(state, []), do: state
+
   defp parse_loop(state, line_provider) do
-    [ line ] = Enum.take line_provider, 1
+    [line] = Enum.take(line_provider, 1)
+
     case handle_line(state, line) do
       {:ok, updated_state} ->
-        rest = Enum.drop line_provider, 1
-        parse_loop updated_state, rest
+        rest = Enum.drop(line_provider, 1)
+        parse_loop(updated_state, rest)
+
       :halt ->
-        Logger.debug "[parse_loop] done"
+        Logger.debug("[parse_loop] done")
         state
     end
   end
 
   defp handle_line(_state, []), do: :halt
   defp handle_line(_state, :eof), do: :halt
-  defp handle_line(state, err={:error, reason}) do
-    Logger.warn ["Input error: ", inspect reason]
-    handle_line_error state, err
+
+  defp handle_line(state, err = {:error, reason}) do
+    Logger.warn(["Input error: ", inspect(reason)])
+    handle_line_error(state, err)
   end
+
   defp handle_line(state, line) do
-    case Reader.process_line line, state.latest_tag do
+    case Reader.process_line(line, state.latest_tag) do
       {:ok, cli_result} ->
-        updated_state = handle_cli_result state, line, cli_result
+        updated_state = handle_cli_result(state, line, cli_result)
         {:ok, updated_state}
-      err={:error, reason} ->
-        Logger.warn ["Input error: ", inspect(reason), " (", inspect(line), ")"]
-        handle_line_error state, err
+
+      err = {:error, reason} ->
+        Logger.warn(["Input error: ", inspect(reason), " (", inspect(line), ")"])
+        handle_line_error(state, err)
+
       :halt ->
         :halt
     end
   end
 
   defp handle_cli_result(state, line, {time, tag, chunk_start, chunk_tag}) do
-    {:ok, diff} = parse_time time
-    entry = Summary.create_entry diff, tag, {chunk_start, chunk_tag}
-    Logger.debug ["[handle_line] ", inspect(line), " => ", inspect(entry)]
-    Summary.push state, entry
+    {:ok, diff} = parse_time(time)
+    entry = Summary.create_entry(diff, tag, {chunk_start, chunk_tag})
+    Logger.debug(["[handle_line] ", inspect(line), " => ", inspect(entry)])
+    Summary.push(state, entry)
   end
 
-  defp parse_time({:interval, i}), do: TimeRange.from_interval i
-  defp parse_time({:range, r}), do: TimeRange.from_range r
+  defp parse_time({:interval, i}), do: TimeRange.from_interval(i)
+  defp parse_time({:range, r}), do: TimeRange.from_range(r)
 
   defp handle_line_error(state, error), do: {:ok, Summary.push(state, error)}
 
-  def build_output({chunk_sums, tag_sums, chunk_tag_sums, week_total}) do
-    ["",
-     build_daily_output(chunk_sums),
-     build_week_output(week_total),
-     build_tags_output(tag_sums),
-     build_chunk_tags_output(chunk_tag_sums)]
-    |> Enum.intersperse("\n")
-  end
-
-  defp build_daily_output(sums), do: ["daily hours: ", inspect sums]
+  defp build_daily_output(sums), do: ["daily hours: ", inspect(sums)]
 
   defp build_week_output(total) do
     total_out = inspect(total)
-    rem_out = inspect(40-total)
+    rem_out = inspect(40 - total)
     ["week total:  ", total_out, " (", rem_out, " remaining)"]
   end
 
-  defp build_tags_output(sums), do: ["tag sum:     \n  ", interspect sums]
+  defp build_tags_output(sums), do: ["tag sum:     \n  ", interspect(sums)]
 
   defp build_chunk_tags_output(chunk_tag_sums) do
-    ["daily tag sums:\n  ", interspect chunk_tag_sums]
+    ["daily tag sums:\n  ", interspect(chunk_tag_sums)]
   end
 
   defp interspect(enumerable) do
     enumerable
-    |> Enum.map(&(inspect &1))
+    |> Enum.map(&inspect(&1))
     |> Enum.intersperse("\n  ")
   end
 end
-
