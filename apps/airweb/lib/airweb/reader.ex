@@ -56,20 +56,24 @@ defmodule Airweb.Reader do
   end
 
   defp build_meta(line, time, tokens, latest_tag) do
-    tag =
-      case Map.get(tokens, "tag") do
-        "" -> latest_tag
-        tag -> tag |> String.trim()
-      end
-
+    tag = meta_tag(tokens, latest_tag)
     chunk_start = line =~ ~r/^\S/iu
-
-    chunk_tag =
-      case Map.get(tokens, "chunk") do
-        "" -> :no_tag
-        chunk_tag -> chunk_tag |> String.trim()
-      end
+    chunk_tag = meta_chunk(tokens)
 
     {:ok, {time, tag, chunk_start, chunk_tag}}
+  end
+
+  defp meta_tag(tokens, latest_tag) do
+    case Map.get(tokens, "tag") do
+      "" -> latest_tag
+      t -> t |> String.trim()
+    end
+  end
+
+  defp meta_chunk(tokens) do
+    case Map.get(tokens, "chunk") do
+      "" -> :no_tag
+      chunk_tag -> chunk_tag |> String.trim()
+    end
   end
 end
