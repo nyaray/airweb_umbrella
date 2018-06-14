@@ -8,6 +8,9 @@ defmodule Airweb.Reader do
 
   @lex_re ~r/#{@chunk_re}?(#{@time_re}(,?\s*#{@tag_re})?)$/iu
 
+  @line_chunk_start_re ~r/^\w+ +\d{2}:\d{2}(-\d{2}:\d{2})?, \S.*$/iu
+  @line_re ~r/^ +\d{2}:\d{2}(-\d{2}:\d{2})?(, \S.*)?$/iu
+
   @doc ~S"""
   Parses a timesheet item expected to contain the following parts:
 
@@ -15,27 +18,25 @@ defmodule Airweb.Reader do
   - Either a time range (e.g. 08:00-10:15) OR a time interval (e.g. 02:15)
   - An (optional) activity tag except for in the beginning of chunks
 
-      iex> Airweb.Reader.process_line("Må 08:15-11:45, Bar", :fallback)
-      {:ok, {{:range, ["08:15", "11:45"]}, "Bar", true, "Må"}}
+      iex> Airweb.Reader.process_line("Må 08:15-11:45, Bar")
+      {:ok, {{:range, ["08:15", "11:45"]}, "Bar", :start, "Må"}}
 
-      iex> Airweb.Reader.process_line("  10:30-14:15", :fallback)
-      {:ok, {{:range, ["10:30", "14:15"]}, :fallback, false, :no_tag}}
+      iex> Airweb.Reader.process_line("  10:30-14:15")
+      {:ok, {{:range, ["10:30", "14:15"]}, "", :append, :no_tag}}
 
-      iex> Airweb.Reader.process_line("14:00", :fallback)
+      iex> Airweb.Reader.process_line("14:00")
       {:error, {:bad_format, "14:00"}}
 
   """
-  def process_line(dirty_line, latest_tag) do
+  def process_line(dirty_line) do
     Logger.debug(["process_line dirty:", inspect(dirty_line)])
     line = String.trim_trailing(dirty_line)
 
     Logger.debug(["process_line clean:", inspect(line)])
 
     with :ok <- check_line_length(line),
-         :ok <- check_line_format(line),
-         tokens <- lex_line(line),
-         time <- cannonicalize_line_time(tokens["time"]) do
-      build_meta(line, time, tokens, latest_tag)
+         {:ok, line_type} <- check_line_format(line) do
+      build_meta(line, line_type)
     end
   end
 
@@ -44,8 +45,8 @@ defmodule Airweb.Reader do
 
   defp check_line_format(line) do
     cond do
-      line =~ ~r/^\w+ +\d{2}:\d{2}(-\d{2}:\d{2})?, \S.*$/iu -> :ok
-      line =~ ~r/^ +\d{2}:\d{2}(-\d{2}:\d{2})?(, \S.*)?$/iu -> :ok
+      line =~ @line_chunk_start_re -> {:ok, :start}
+      line =~ @line_re -> {:ok, :append}
       true -> {:error, {:bad_format, line}}
     end
   end
@@ -61,20 +62,14 @@ defmodule Airweb.Reader do
     end
   end
 
-  defp build_meta(line, time, tokens, latest_tag) do
-    tag = meta_tag(tokens, latest_tag)
-    chunk_start = line =~ ~r/^\S/iu
+  defp build_meta(line, line_type) do
+    tokens = lex_line(line)
+    time = cannonicalize_line_time(tokens["time"])
+    tag = String.trim(tokens["tag"])
+    #chunk_start = line =~ ~r/^\S/iu
     chunk_tag = meta_chunk(tokens)
 
-    # TODO track chunk_start and remove uses
-    {:ok, {time, tag, chunk_start, chunk_tag}}
-  end
-
-  defp meta_tag(tokens, latest_tag) do
-    case Map.get(tokens, "tag") do
-      "" -> latest_tag
-      t -> t |> String.trim()
-    end
+    {:ok, {time, tag, line_type, chunk_tag}}
   end
 
   defp meta_chunk(tokens) do

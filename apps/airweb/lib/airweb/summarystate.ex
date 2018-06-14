@@ -45,16 +45,16 @@ defmodule Airweb.SummaryState do
     |> Enum.reverse()
   end
 
-  defp rotate_chunk(s = %SummaryState{}, {false, _chunk_tag}), do: s
+  defp rotate_chunk(s = %SummaryState{}, {:append, _chunk_tag}), do: s
 
   defp rotate_chunk(s = %SummaryState{:current_chunk => []}, chunk_meta) do
     case chunk_meta do
-      {true, chunk_tag} -> %SummaryState{s | :latest_chunk_tag => chunk_tag}
-      {false, _chunk_tag} -> s
+      {:start, chunk_tag} -> %SummaryState{s | :latest_chunk_tag => chunk_tag}
+      {:append, _chunk_tag} -> s
     end
   end
 
-  defp rotate_chunk(s = %SummaryState{}, {true, chunk_tag}) do
+  defp rotate_chunk(s = %SummaryState{}, {:start, chunk_tag}) do
     chunk = {s.latest_chunk_tag, Enum.reverse(s.current_chunk)}
     chunks = [chunk | s.chunks]
     chunk_tags = [s.current_chunk_tags | s.chunk_tags]

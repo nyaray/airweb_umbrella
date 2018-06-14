@@ -58,7 +58,7 @@ defmodule Airweb.AirTime do
   end
 
   defp handle_line(state, line) do
-    case Reader.process_line(line, state.latest_tag) do
+    case Reader.process_line(line) do
       {:ok, cli_result} ->
         updated_state = handle_cli_result(state, line, cli_result)
         {:ok, updated_state}
@@ -72,16 +72,23 @@ defmodule Airweb.AirTime do
     end
   end
 
-  # TODO remove chunk_start and check value of chunk_tag
-  defp handle_cli_result(state, line, {time, tag, chunk_start, chunk_tag}) do
+  defp handle_cli_result(state, line, {time, tag, line_type, chunk_tag}) do
     {:ok, diff} = parse_time(time)
-    entry = Summary.create_entry(diff, tag, {chunk_start, chunk_tag})
+    tag = derive_tag(tag, state.latest_tag)
+    entry = Summary.create_entry(diff, tag, {line_type, chunk_tag})
     Logger.debug(["[handle_line] ", inspect(line), " => ", inspect(entry)])
     Summary.push(state, entry)
   end
 
   defp parse_time({:interval, i}), do: TimeRange.from_interval(i)
   defp parse_time({:range, r}), do: TimeRange.from_range(r)
+
+  defp derive_tag(current_tag, latest_tag) do
+    case current_tag do
+      "" -> latest_tag
+      t -> String.trim(t)
+    end
+  end
 
   defp handle_line_error(state, error), do: {:ok, Summary.push(state, error)}
 
