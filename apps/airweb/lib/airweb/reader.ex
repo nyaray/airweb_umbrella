@@ -66,7 +66,6 @@ defmodule Airweb.Reader do
     tokens = lex_line(line)
     time = cannonicalize_line_time(tokens["time"])
     tag = String.trim(tokens["tag"])
-    #chunk_start = line =~ ~r/^\S/iu
     chunk_tag = meta_chunk(tokens)
 
     {:ok, {time, tag, line_type, chunk_tag}}
