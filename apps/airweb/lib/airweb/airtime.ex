@@ -72,6 +72,7 @@ defmodule Airweb.AirTime do
     end
   end
 
+  # TODO remove chunk_start and check value of chunk_tag
   defp handle_cli_result(state, line, {time, tag, chunk_start, chunk_tag}) do
     {:ok, diff} = parse_time(time)
     entry = Summary.create_entry(diff, tag, {chunk_start, chunk_tag})

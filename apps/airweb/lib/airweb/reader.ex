@@ -1,6 +1,12 @@
 defmodule Airweb.Reader do
   require Logger
 
+  # lexing rules
+  @chunk_re "(?<chunk>^\\w+ +)?"
+  @time_re "(?<time>\\d{2}:\\d{2}(-\\d{2}:\\d{2})?)"
+  @tag_re "(?<tag>\\S.*)"
+  @lex_re ~r/#{@chunk_re}(#{@time_re}(,?\s*#{@tag_re})?)$/iu
+
   @doc ~S"""
   Parses a timesheet item expected to contain the following parts:
 
@@ -44,8 +50,7 @@ defmodule Airweb.Reader do
   end
 
   defp lex_line(line) do
-    re = ~r/(?<chunk>^\w+ +)?((?<time>\d{2}:\d{2}(-\d{2}:\d{2})?)(,?\s*(?<tag>\S.*))?)$/iu
-    Regex.named_captures(re, line)
+    Regex.named_captures(@lex_re, line)
   end
 
   defp cannonicalize_line_time(line) do
@@ -60,6 +65,7 @@ defmodule Airweb.Reader do
     chunk_start = line =~ ~r/^\S/iu
     chunk_tag = meta_chunk(tokens)
 
+    # TODO track chunk_start and remove uses
     {:ok, {time, tag, chunk_start, chunk_tag}}
   end
 
