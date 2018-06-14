@@ -2,10 +2,11 @@ defmodule Airweb.Reader do
   require Logger
 
   # lexing rules
-  @chunk_re "(?<chunk>^\\w+ +)?"
+  @chunk_re "(?<chunk>^\\w+ +)"
   @time_re "(?<time>\\d{2}:\\d{2}(-\\d{2}:\\d{2})?)"
   @tag_re "(?<tag>\\S.*)"
-  @lex_re ~r/#{@chunk_re}(#{@time_re}(,?\s*#{@tag_re})?)$/iu
+
+  @lex_re ~r/#{@chunk_re}?(#{@time_re}(,?\s*#{@tag_re})?)$/iu
 
   @doc ~S"""
   Parses a timesheet item expected to contain the following parts:
