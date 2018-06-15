@@ -14,10 +14,8 @@ defmodule Airweb.AirTime do
 
   """
   def parse(input) do
-    line_provider = String.splitter(input, "\n")
-
-    Summary.new()
-    |> parse_loop(line_provider)
+    String.splitter(input, "\n")
+    |> Enum.reduce_while(Summary.new(), &reduce_line/2)
     |> Summary.externalize()
   end
 
@@ -32,20 +30,14 @@ defmodule Airweb.AirTime do
     |> Enum.intersperse("\n")
   end
 
-  # TODO switch to mutual recursion with handle_line
-  defp parse_loop(state, []), do: state
-
-  defp parse_loop(state, line_provider) do
-    [line] = Enum.take(line_provider, 1)
-
+  defp reduce_line(line, state) do
     case handle_line(state, line) do
       {:ok, updated_state} ->
-        rest = Enum.drop(line_provider, 1)
-        parse_loop(updated_state, rest)
+        {:cont, updated_state}
 
       :halt ->
-        Logger.debug("[parse_loop] done")
-        state
+        Logger.debug("[reduce_line] halt")
+        {:halt, state}
     end
   end
 
