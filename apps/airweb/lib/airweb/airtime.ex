@@ -49,30 +49,22 @@ defmodule Airweb.AirTime do
     end
   end
 
-  defp handle_line(_state, []), do: :halt
-  defp handle_line(_state, :eof), do: :halt
-
-  defp handle_line(state, err = {:error, reason}) do
-    Logger.warn(["Input error: ", inspect(reason)])
-    handle_line_error(state, err)
-  end
-
   defp handle_line(state, line) do
     case Reader.process_line(line) do
-      {:ok, cli_result} ->
-        updated_state = handle_cli_result(state, line, cli_result)
+      {:ok, result} ->
+        updated_state = handle_line_result(state, line, result)
         {:ok, updated_state}
 
-      err = {:error, reason} ->
+      error = {:error, reason} ->
         Logger.warn(["Input error: ", inspect(reason), " (", inspect(line), ")"])
-        handle_line_error(state, err)
+        {:ok, Summary.push(state, error)}
 
       :halt ->
         :halt
     end
   end
 
-  defp handle_cli_result(state, line, {time, tag, line_type, chunk_tag}) do
+  defp handle_line_result(state, line, {time, tag, line_type, chunk_tag}) do
     {:ok, diff} = parse_time(time)
     tag = derive_tag(tag, state.latest_tag)
     entry = Summary.create_entry(diff, tag, {line_type, chunk_tag})
@@ -89,8 +81,6 @@ defmodule Airweb.AirTime do
       t -> String.trim(t)
     end
   end
-
-  defp handle_line_error(state, error), do: {:ok, Summary.push(state, error)}
 
   defp build_daily_output(sums), do: ["daily hours: ", inspect(sums)]
 
