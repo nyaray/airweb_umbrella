@@ -32,7 +32,8 @@ defmodule Airweb.AirTime do
 
   defp reduce_line(line, state) do
     case Reader.process_line(line) do
-      {:ok, result} -> {:cont, handle_line_result(state, line, result)}
+      {:ok, result} ->
+        {:cont, handle_line_result(state, line, result)}
 
       error = {:error, reason} ->
         Logger.warn(["Input error: ", inspect(reason), " (", inspect(line), ")"])
