@@ -85,9 +85,6 @@ defmodule Airweb.AirTimeTest do
         [%{"Bar" => 8.0, "Foo" => 3.0}, %{"Bar" => 4.0, "Foo" => 4.0}],
         19.0
       }}
-    end
-
-    assert capture_log(fun) =~ ~r/Input error.*bad_format/ui
   end
 
   test "that parse/1 reports an error for last item in chunk" do
