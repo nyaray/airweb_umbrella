@@ -61,11 +61,13 @@ defmodule Airweb.AirTimeTest do
     Ti 04:00, Bar
     """
 
-    fun = fn -> assert AirTime.parse(input) ==
-      {:error, [{:bad_format, "Må 08:00 Bar"}]}
-    end
-
-    assert capture_log(fun) =~ ~r/Input error.*bad_format/ui
+    assert AirTime.parse(input) ==
+      {:ok, {
+        [{"Må", 11.0}, {"Ti", 4.0}],
+        [{"Bar", 12.0}, {"Foo", 3.0}],
+        [%{"Bar" => 8.0, "Foo" => 3.0}, %{"Bar" => 4.0}],
+        15.0
+      }}
   end
 
   test "that parse/1 reports an error for first item in second chunk" do
@@ -76,8 +78,13 @@ defmodule Airweb.AirTimeTest do
       04:00, Foo
     """
 
-    fun = fn -> assert AirTime.parse(input) ==
-      {:error, [{:bad_format, "Ti 04:00 Bar"}]}
+    assert AirTime.parse(input) ==
+      {:ok, {
+        [{"Må", 11.0}, {"Ti", 8.0}],
+        [{"Bar", 12.0}, {"Foo", 7.0}],
+        [%{"Bar" => 8.0, "Foo" => 3.0}, %{"Bar" => 4.0, "Foo" => 4.0}],
+        19.0
+      }}
     end
 
     assert capture_log(fun) =~ ~r/Input error.*bad_format/ui
@@ -90,11 +97,13 @@ defmodule Airweb.AirTimeTest do
     Ti 04:00, Bar
     """
 
-    fun = fn -> assert AirTime.parse(input) ==
-      {:error, [{:bad_format, "  03:00 Foo"}]}
-    end
-
-    assert capture_log(fun) =~ ~r/Input error.*bad_format/ui
+    assert AirTime.parse(input) ==
+      {:ok, {
+        [{"Må", 11.0}, {"Ti", 4.0}],
+        [{"Bar", 12.0}, {"Foo", 3.0}],
+        [%{"Bar" => 8.0, "Foo" => 3.0}, %{"Bar" => 4.0}],
+        15.0
+      }}
   end
 
   test "that parse/1 reports multiple errors for a timesheet" do
@@ -104,12 +113,13 @@ defmodule Airweb.AirTimeTest do
     Ti 04:00 Bar
     """
 
-    fun = fn -> assert AirTime.parse(input) ==
-      {:error, [{:bad_format, "  03:00 Foo"},
-                {:bad_format, "Ti 04:00 Bar"}]}
-    end
-
-    assert capture_log(fun) =~ ~r/Input error.*bad_format/ui
+    assert AirTime.parse(input) ==
+      {:ok, {
+        [{"Må", 11.0}, {"Ti", 4.0}],
+        [{"Bar", 12.0}, {"Foo", 3.0}],
+        [%{"Bar" => 8.0, "Foo" => 3.0}, %{"Bar" => 4.0}],
+        15.0
+      }}
   end
 
   #def generate_timesheet() do

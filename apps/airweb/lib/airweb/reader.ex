@@ -8,8 +8,8 @@ defmodule Airweb.Reader do
 
   @lex_re ~r/#{@chunk_re}?(#{@time_re}(,?\s*#{@tag_re})?)$/iu
 
-  @line_chunk_start_re ~r/^\w+ +\d{2}:\d{2}(-\d{2}:\d{2})?, \S.*$/iu
-  @line_re ~r/^ +\d{2}:\d{2}(-\d{2}:\d{2})?(, \S.*)?$/iu
+  @line_chunk_start_re ~r/^\w+ +\d{2}:\d{2}(-\d{2}:\d{2})?((,? +)| +)\S.*$/iu
+  @line_re ~r/^ +\d{2}:\d{2}(-\d{2}:\d{2})?(((,? +)| +)\S.*)?$/iu
 
   @doc ~S"""
   Parses a timesheet item expected to contain the following parts:
@@ -21,8 +21,20 @@ defmodule Airweb.Reader do
       iex> Airweb.Reader.process_line("Må 08:15-11:45, Bar")
       {:ok, {{:range, ["08:15", "11:45"]}, "Bar", :start, "Må"}}
 
+      iex> Airweb.Reader.process_line("Må 08:15-11:45 Bar")
+      {:ok, {{:range, ["08:15", "11:45"]}, "Bar", :start, "Må"}}
+
+      iex> Airweb.Reader.process_line("  10:30-14:15, Bar")
+      {:ok, {{:range, ["10:30", "14:15"]}, "Bar", :append, :no_tag}}
+
+      iex> Airweb.Reader.process_line("  10:30-14:15 Bar")
+      {:ok, {{:range, ["10:30", "14:15"]}, "Bar", :append, :no_tag}}
+
       iex> Airweb.Reader.process_line("  10:30-14:15")
       {:ok, {{:range, ["10:30", "14:15"]}, "", :append, :no_tag}}
+
+      iex> Airweb.Reader.process_line("  14:00")
+      {:ok, {{:interval, "14:00"}, "", :append, :no_tag}}
 
       iex> Airweb.Reader.process_line("14:00")
       {:error, {:bad_format, "14:00"}}
