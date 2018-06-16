@@ -9,7 +9,7 @@ defmodule Airweb.Reader do
   @lex_re ~r/#{@chunk_re}?(#{@time_re}(,?\s*#{@tag_re})?)$/iu
 
   @line_chunk_start_re ~r/^\w+ +\d{2}:\d{2}(-\d{2}:\d{2})?((,? +)| +)\S.*$/iu
-  @line_re ~r/^ +\d{2}:\d{2}(-\d{2}:\d{2})?(((,? +)| +)\S.*)?$/iu
+  @line_chunk_append_re ~r/^ +\d{2}:\d{2}(-\d{2}:\d{2})?(((,? +)| +)\S.*)?$/iu
 
   @doc ~S"""
   Parses a timesheet item expected to contain the following parts:
@@ -58,7 +58,7 @@ defmodule Airweb.Reader do
   defp check_line_format(line) do
     cond do
       line =~ @line_chunk_start_re -> {:ok, :start}
-      line =~ @line_re -> {:ok, :append}
+      line =~ @line_chunk_append_re -> {:ok, :append}
       true -> {:error, {:bad_format, line}}
     end
   end
