@@ -4,8 +4,6 @@ defmodule Airweb.AirTimeTest do
   use ExUnit.Case, async: true
   use ExUnitProperties
 
-  import ExUnit.CaptureLog
-
   alias Airweb.AirTime, as: AirTime
 
   doctest Airweb.AirTime
@@ -119,17 +117,42 @@ defmodule Airweb.AirTimeTest do
       }}
   end
 
-  #def generate_timesheet() do
-  #  alpha =
-  #    [?a..?z, ?A..?Z]
-  #    |> Enum.concat
-  #    |> StreamData.string
-  #  alpha_pair = StreamData.list_of(alpha, length: 2)
+  #defp time2string({:range, [from, to]}), do: "#{from}-#{to}"
+  #defp time2string({:interval, i}), do: "00:00-#{to}"
+
+  #defp generate_timesheet() do
+  #  line_time =
+  #    gen all from <- integer(8..15),
+  #            duration_h <- integer(2..4),
+  #            duration_m1 <- member_of(["0", "15", "30", "45"]),
+  #            duration_m2 <- member_of(["0", "15", "30", "45"]) do
+  #              inspect(from) <> ":" <> duration_m1 <> "-" <>
+  #                inspect(from+duration_h) <> ":" <> duration_m2
+  #    end
+
+  #  line_tag = StreamData.string(Enum.concat([?a..?z, ?A..?Z]), length: 4)
+  #  tag =
+  #    ["aa", "hh", "zz"]
+  #    |> StreamData.member_of()
+
+  #  day_spec = StreamData.map_of(line_time, line_tag)
+  #  chunk_tag = StreamData.string(Enum.concat([?a..?z, ?A..?Z]), length: 2)
+
+  #  StreamData.map_of(chunk_tag, day_spec, min_length: 2)
   #end
 
-  #property "testing" do
-  #  check all sheet <- generate_timesheet() do
-  #    assert Enum.length(sheet) == 4
+  #defp serialize_chunk(chunk) do
+  #end
+
+  #defp serialize_timesheet(sheet) do
+  #  keys = Map.keys sheet
+  #  Enum.map(sheet, fn ())
+  #end
+
+  #property "five days" do
+  #  check all days <- generate_timesheet() do
+  #    assert is_map(days)
+  #    assert Enum.count(Map.keys(days)) < 5
   #  end
   #end
 
