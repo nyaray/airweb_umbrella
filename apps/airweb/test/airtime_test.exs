@@ -6,6 +6,8 @@ defmodule Airweb.AirTimeTest do
 
   alias Airweb.AirTime, as: AirTime
 
+  import Airweb.TestGenerators
+
   doctest Airweb.AirTime
 
   test "that parse/1 correctly sets the fallback project on new days 1" do
@@ -126,41 +128,6 @@ defmodule Airweb.AirTimeTest do
 
   #defp time2string({:range, [from, to]}), do: "#{from}-#{to}"
   #defp time2string({:interval, i}), do: "00:00-#{to}"
-
-  defp generate_timesheet() do
-    line_time =
-      gen all from <- integer(8..15),
-              duration_h <- integer(2..4),
-              duration_m1 <- member_of(["00", "15", "30", "45"]),
-              duration_m2 <- member_of(["00", "15", "30", "45"]) do
-                prefix =
-                  case from do
-                    f when f < 10 -> "0"
-                    _ -> ""
-                  end
-                inspect(from) <> ":" <> duration_m1 <> "-" <>
-                  inspect(from+duration_h) <> ":" <> duration_m2
-      end
-
-    tag =
-      ["Foo", "Bar", "Baz"]
-      |> StreamData.member_of()
-
-    day_spec = StreamData.map_of(line_time, tag, min_length: 1)
-    chunk_tag = StreamData.member_of(["Mo", "Tu", "We", "Th", "Fr"])
-
-    StreamData.map_of(chunk_tag, day_spec, min_length: 2)
-  end
-
-  defp serialize_chunk(chunk) do
-    Enum.map(chunk, fn ({k,v}) -> k <> ", " <> v end)
-    |> Enum.join("\n  ")
-  end
-
-  defp serialize_timesheet(sheet) do
-    Enum.map(sheet, fn ({k,v}) -> k <> " " <> serialize_chunk(v) end)
-    #|> Enum.join("\n")
-  end
 
   property "five days" do
     check all days <- generate_timesheet() do
