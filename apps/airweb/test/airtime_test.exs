@@ -129,6 +129,7 @@ defmodule Airweb.AirTimeTest do
   #defp time2string({:range, [from, to]}), do: "#{from}-#{to}"
   #defp time2string({:interval, i}), do: "00:00-#{to}"
 
+  @tag :skip
   property "five days" do
     check all days <- generate_timesheet() do
       assert is_map(days)
