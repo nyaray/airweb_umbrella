@@ -10,7 +10,9 @@ defmodule Airweb.Web.HomeController do
   end
 
   def process(conn, params) do
-    user_input = params["user_input"]
+    user_input =
+      params["user_input"]
+      |> String.splitter("\n")
 
     case AirTime.parse(user_input) do
       {:ok, parse_result} ->

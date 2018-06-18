@@ -9,28 +9,23 @@ defmodule Airweb.AirTime do
   Interprets `input` as a listing of hours spent, outputing a summary accross
   both projects and days.
 
-      iex> Airweb.AirTime.parse("Må 08:15-11:45, Foo\n  12:30-17:00\n")
+      iex> "Må 08:15-11:45, Foo\n  12:30-17:00\n" |> String.splitter("\n") |> Airweb.AirTime.parse()
       {:ok, {[{"Må", 8.0}], [{"Foo", 8.0}], [%{"Foo" => 8.0}], 8.0}}
 
   """
   def parse(input) do
-    String.splitter(input, "\n")
+    input
     |> Enum.reduce_while(Summary.new(), &reduce_line/2)
     |> Summary.externalize()
   end
 
-  def build_output({chunk_sums, tag_sums, chunk_tag_sums, week_total}) do
-    [
-      "",
-      build_daily_output(chunk_sums),
-      build_week_output(week_total),
-      build_tags_output(tag_sums),
-      build_chunk_tags_output(chunk_tag_sums)
-    ]
-    |> Enum.intersperse("\n")
+  def parse(input, state) do
+    input
+    |> Enum.reduce_while(state, &reduce_line/2)
+    |> Summary.externalize()
   end
 
-  defp reduce_line(line, state) do
+  def reduce_line(line, state) do
     case Reader.process_line(line) do
       {:ok, result} ->
         {:cont, handle_line_result(state, line, result)}
@@ -43,6 +38,17 @@ defmodule Airweb.AirTime do
         Logger.debug("[reduce_line] halt")
         {:halt, state}
     end
+  end
+
+  def build_output({chunk_sums, tag_sums, chunk_tag_sums, week_total}) do
+    [
+      "",
+      build_daily_output(chunk_sums),
+      build_week_output(week_total),
+      build_tags_output(tag_sums),
+      build_chunk_tags_output(chunk_tag_sums)
+    ]
+    |> Enum.intersperse("\n")
   end
 
   defp handle_line_result(state, line, {time, tag, line_type, chunk_tag}) do

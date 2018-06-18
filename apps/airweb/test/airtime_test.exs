@@ -1,7 +1,7 @@
 defmodule Airweb.AirTimeTest do
   require Logger
 
-  use ExUnit.Case, async: true
+  use ExUnit.Case, async: false
   use ExUnitProperties
 
   alias Airweb.AirTime, as: AirTime
@@ -13,6 +13,7 @@ defmodule Airweb.AirTimeTest do
     Må 08:00, Foo
     Ti 04:00, Bar
     """
+    |> String.splitter("\n")
 
     assert AirTime.parse(input) ==
       {:ok, {
@@ -28,6 +29,7 @@ defmodule Airweb.AirTimeTest do
     Ti 04:00, Bar
       03:00, Foo
     """
+    |> String.splitter("\n")
 
     assert AirTime.parse(input) ==
       {:ok, {
@@ -43,6 +45,7 @@ defmodule Airweb.AirTimeTest do
       03:00, Foo
     Ti 04:00, Bar
     """
+    |> String.splitter("\n")
 
     assert AirTime.parse(input) ==
       {:ok, {
@@ -58,6 +61,7 @@ defmodule Airweb.AirTimeTest do
       03:00, Foo
     Ti 04:00, Bar
     """
+    |> String.splitter("\n")
 
     assert AirTime.parse(input) ==
       {:ok, {
@@ -75,6 +79,7 @@ defmodule Airweb.AirTimeTest do
     Ti 04:00 Bar
       04:00, Foo
     """
+    |> String.splitter("\n")
 
     assert AirTime.parse(input) ==
       {:ok, {
@@ -91,6 +96,7 @@ defmodule Airweb.AirTimeTest do
       03:00 Foo
     Ti 04:00, Bar
     """
+    |> String.splitter("\n")
 
     assert AirTime.parse(input) ==
       {:ok, {
@@ -107,6 +113,7 @@ defmodule Airweb.AirTimeTest do
       03:00 Foo
     Ti 04:00 Bar
     """
+    |> String.splitter("\n")
 
     assert AirTime.parse(input) ==
       {:ok, {
@@ -120,41 +127,55 @@ defmodule Airweb.AirTimeTest do
   #defp time2string({:range, [from, to]}), do: "#{from}-#{to}"
   #defp time2string({:interval, i}), do: "00:00-#{to}"
 
-  #defp generate_timesheet() do
-  #  line_time =
-  #    gen all from <- integer(8..15),
-  #            duration_h <- integer(2..4),
-  #            duration_m1 <- member_of(["0", "15", "30", "45"]),
-  #            duration_m2 <- member_of(["0", "15", "30", "45"]) do
-  #              inspect(from) <> ":" <> duration_m1 <> "-" <>
-  #                inspect(from+duration_h) <> ":" <> duration_m2
-  #    end
+  defp generate_timesheet() do
+    line_time =
+      gen all from <- integer(8..15),
+              duration_h <- integer(2..4),
+              duration_m1 <- member_of(["00", "15", "30", "45"]),
+              duration_m2 <- member_of(["00", "15", "30", "45"]) do
+                prefix =
+                  case from do
+                    f when f < 10 -> "0"
+                    _ -> ""
+                  end
+                inspect(from) <> ":" <> duration_m1 <> "-" <>
+                  inspect(from+duration_h) <> ":" <> duration_m2
+      end
 
-  #  line_tag = StreamData.string(Enum.concat([?a..?z, ?A..?Z]), length: 4)
-  #  tag =
-  #    ["aa", "hh", "zz"]
-  #    |> StreamData.member_of()
+    tag =
+      ["Foo", "Bar", "Baz"]
+      |> StreamData.member_of()
 
-  #  day_spec = StreamData.map_of(line_time, line_tag)
-  #  chunk_tag = StreamData.string(Enum.concat([?a..?z, ?A..?Z]), length: 2)
+    day_spec = StreamData.map_of(line_time, tag, min_length: 1)
+    chunk_tag = StreamData.member_of(["Mo", "Tu", "We", "Th", "Fr"])
 
-  #  StreamData.map_of(chunk_tag, day_spec, min_length: 2)
-  #end
+    StreamData.map_of(chunk_tag, day_spec, min_length: 2)
+  end
 
-  #defp serialize_chunk(chunk) do
-  #end
+  defp serialize_chunk(chunk) do
+    Enum.map(chunk, fn ({k,v}) -> k <> ", " <> v end)
+    |> Enum.join("\n  ")
+  end
 
-  #defp serialize_timesheet(sheet) do
-  #  keys = Map.keys sheet
-  #  Enum.map(sheet, fn ())
-  #end
+  defp serialize_timesheet(sheet) do
+    Enum.map(sheet, fn ({k,v}) -> k <> " " <> serialize_chunk(v) end)
+    #|> Enum.join("\n")
+  end
 
-  #property "five days" do
-  #  check all days <- generate_timesheet() do
-  #    assert is_map(days)
-  #    assert Enum.count(Map.keys(days)) < 5
-  #  end
-  #end
+  property "five days" do
+    check all days <- generate_timesheet() do
+      assert is_map(days)
+
+      sheet_string = serialize_timesheet(days)
+      #if String.length(sheet_string) >= 50 do
+      #  Logger.error(sheet_string)
+      #end
+
+      #assert String.length(sheet_string) < 50
+
+      assert AirTime.parse(sheet_string) === :lol
+    end
+  end
 
 end
 
