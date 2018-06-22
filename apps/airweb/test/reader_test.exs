@@ -29,47 +29,42 @@ defmodule Airweb.ReaderTest do
     duration = gen all d <- integer(2..4), do: d
     minute = gen all m <- member_of(["00", "15", "30", "45"]), do: m
 
-    tag =
-      gen all t_prefix <- one_of([constant(","), constant(" ")]),
-              t_spaces <- string([?\s], max_length: 4),
-              t_tag <- string(:alphanumeric, min_length: 1, max_length: 3) do
-        t_prefix <> t_spaces <> t_tag
-      end
-
-    chunk =
-      gen all c_chunk <- string(Enum.concat([?a..?z, ?A..?Z]), min_length: 1, max_length: 3),
-              c_spaces <- string([?\s], min_length: 1, max_length: 4),
-              c_suffix <- one_of([constant(c_chunk<>c_spaces), constant(c_spaces)]) do
-        c_chunk <> c_suffix
-      end
-
-    # TODO: labels = # gen all pairs of chunk and line labels that are valid:
-    #       - c begins with non-space, t has meaning
-    #       - t optionally has meaning
+    labels =
+      StreamData.one_of([
+        StreamData.tuple({ # chunk => tag present
+          StreamData.constant(:start),
+          StreamData.string(Enum.concat([?a..?z, ?A..?Z]), min_length: 1, max_length: 3),
+          StreamData.string(Enum.concat([?a..?z, ?A..?Z]), min_length: 1, max_length: 4)
+        }),
+        StreamData.tuple({ # no chunk => tag present
+          StreamData.constant(:append),
+          StreamData.constant(:no_tag),
+          StreamData.string(Enum.concat([?a..?z, ?A..?Z]), min_length: 1, max_length: 4)
+        }),
+        StreamData.tuple({ # no chunk => tag absent
+          StreamData.constant(:append),
+          StreamData.constant(:no_tag),
+          StreamData.constant("")
+        })
+      ])
 
     check all t1 <- time,
-              t <- tag,
-              c <- chunk,
-              (c =~ ~r/^\S/ and t =~ ~r/^(,|\s)\S/) or c =~ ~r/^\s/,
               d <- duration,
               m1 <- minute,
-              m2 <- minute
+              m2 <- minute,
+              {flag, c, tag} <- labels,
+              chunk_pad <- string([9, 32], min_length: 1, max_length: 2),
+              tag_pad <- string([9, 32], max_length: 2)
     do
-      t2 = t1+d
+      from = t_string(t1, m1)
+      to = t_string((t1 + d), m2)
 
-      t1 = t_string t1, m1
-      t2 = t_string t2, m2
+      chunk = if c === :no_tag, do: "", else: t_strip(c)
+      tag_pad = if tag_pad === "" and tag !== "", do: ",", else: tag_pad
 
-      input = c <> t1 <> "-" <> t2 <> t
-
-      range = {:range, [t1, t2]}
-      tag = t |> t_strip()
-      chunk = c |> t_strip()
-      flag = if c =~ ~r/^\s/, do: :append, else: :start
-
-      actual = Reader.process_line(input)
-      expected = {:ok, {range, tag, flag, chunk}}
-      assert actual === expected
+      input = chunk <> chunk_pad <> from <> "-" <> to <> tag_pad <> tag
+      assert Reader.process_line(input) ===
+        {:ok, {{:range, [from, to]}, tag, flag, c}}
     end
   end
 

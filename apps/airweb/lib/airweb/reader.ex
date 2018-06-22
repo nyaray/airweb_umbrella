@@ -2,7 +2,7 @@ defmodule Airweb.Reader do
   require Logger
 
   # lexing rules
-  @chunk_re "(?<chunk>^\\w.+)"
+  @chunk_re "(?<chunk>^\\w+)"
   @time_re "(?<time>\\d{2}:\\d{2}(-\\d{2}:\\d{2})?)"
   @tag_re "(?<tag>\\S.*)"
   @tag_separator_re "((,\\s*)|\\s+)"
