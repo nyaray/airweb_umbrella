@@ -2,21 +2,20 @@ defmodule Airweb.Reader do
   require Logger
 
   # lexing rules
-  @chunk_re "(?<chunk>^\\w+ +)"
+  @chunk_re "(?<chunk>^\\w.+)"
   @time_re "(?<time>\\d{2}:\\d{2}(-\\d{2}:\\d{2})?)"
   @tag_re "(?<tag>\\S.*)"
+  @tag_separator_re "((,\\s*)|\\s+)"
 
-  @lex_re ~r/#{@chunk_re}?(#{@time_re}(,?\s*#{@tag_re})?)$/iu
+  @lex_re ~r/(#{@chunk_re}\s+)?(#{@time_re}(,?\s*#{@tag_re})?)$/iu
 
-  @line_chunk_start_re ~r/^\w+ +\d{2}:\d{2}(-\d{2}:\d{2})?((,? +)| +)\S.*$/iu
-  @line_chunk_append_re ~r/^ +\d{2}:\d{2}(-\d{2}:\d{2})?(((,? +)| +)\S.*)?$/iu
+  @line_chunk_start_re ~r/#{@chunk_re}\s+#{@time_re}#{@tag_separator_re}#{@tag_re}/iu
+  @line_chunk_append_re ~r/^\s+#{@time_re}(#{@tag_separator_re}\S.*)?$/iu
 
   @doc ~S"""
   Parses a timesheet item expected to contain the following parts:
 
-  - Either a "chunk" tag (e.g. a day) OR some amount of white space
-  - Either a time range (e.g. 08:00-10:15) OR a time interval (e.g. 02:15)
-  - An (optional) activity tag except for in the beginning of chunks
+  [[chunk-tag] ][range-or-interval][[,] line-tag]
 
       iex> Airweb.Reader.process_line("Må 08:15-11:45, Bar")
       {:ok, {{:range, ["08:15", "11:45"]}, "Bar", :start, "Må"}}
