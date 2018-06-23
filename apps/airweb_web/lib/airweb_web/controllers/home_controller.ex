@@ -5,31 +5,27 @@ defmodule Airweb.Web.HomeController do
 
   alias Airweb.AirTime, as: AirTime
 
-  def index(conn, _params) do
-    render(conn, "index.html", user_input: "", result: "")
-  end
+  @template "index.html"
+
+  def index(conn, _params), do: render(conn, @template)
 
   def process(conn, params) do
-    user_input =
-      params["user_input"]
-      |> String.splitter("\n")
+    user_input = params["user_input"]
+    render_opts = process_input(user_input)
+    render(conn, @template, Keyword.merge(render_opts, user_input: user_input))
+  end
 
-    case AirTime.parse(user_input) do
-      {:ok, parse_result} ->
-        result = AirTime.build_output(parse_result)
-        render(conn, "index.html", user_input: user_input, result: result)
+  def csrf_token(conn), do: Plug.Conn.get_session(conn, :csrf_token)
 
-      {:error, errors} ->
-        render(conn, "index.html", user_input: user_input, errors: serialize_errors(errors))
+  defp process_input(user_input) do
+    split_input = String.splitter(user_input, "\n")
+
+    case AirTime.parse(split_input) do
+      {:ok, parse_result} -> [result: AirTime.build_output(parse_result)]
+      {:error, errors} -> [errors: serialize_errors(errors)]
     end
   end
 
-  def csrf_token(conn) do
-    Plug.Conn.get_session(conn, :csrf_token)
-  end
+  defp serialize_errors(errors), do: Enum.map(errors, &inspect/1)
 
-  defp serialize_errors(errors) do
-    errors
-    |> Enum.map(&inspect/1)
-  end
 end

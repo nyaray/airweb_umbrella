@@ -9,7 +9,8 @@
     <h4>Tider</h4>
     <form method="post">
       <!--<input type="hidden" name="csrf_token" value="<%= #csrf_token(@conn) %>">-->
-      <textarea name="user_input" rows="20" style="width:100%;"><%= @user_input %></textarea>
+      <textarea name="user_input" rows="20" style="width:100%;"><%=
+        if assigns[:user_input], do: @user_input %></textarea>
       <input type="submit" value="Räkna ut timmar"/>
     </form>
   </div>
