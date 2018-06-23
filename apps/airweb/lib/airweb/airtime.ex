@@ -19,12 +19,6 @@ defmodule Airweb.AirTime do
     |> Summary.externalize()
   end
 
-  def parse(input, state) do
-    input
-    |> Enum.reduce_while(state, &reduce_line/2)
-    |> Summary.externalize()
-  end
-
   def reduce_line(line, state) do
     case Reader.process_line(line) do
       {:ok, result} ->
