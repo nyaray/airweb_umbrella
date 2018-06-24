@@ -8,7 +8,6 @@ defmodule Airweb.Reader do
   @tag_separator_re "((,\\s*)|\\s+)"
 
   @lex_re ~r/(#{@chunk_re}\s+)?(#{@time_re}(,?\s*#{@tag_re})?)$/iu
-
   @line_chunk_start_re ~r/#{@chunk_re}\s+#{@time_re}#{@tag_separator_re}#{@tag_re}/iu
   @line_chunk_append_re ~r/^\s+#{@time_re}(#{@tag_separator_re}\S.*)?$/iu
 
@@ -65,10 +64,6 @@ defmodule Airweb.Reader do
     end
   end
 
-  defp lex_line(line) do
-    Regex.named_captures(@lex_re, line)
-  end
-
   defp cannonicalize_line_time(line) do
     case String.split(line, "-") do
       [interval] -> {:interval, interval}
@@ -76,6 +71,7 @@ defmodule Airweb.Reader do
     end
   end
 
+  # TODO create struct for result
   defp build_meta(line, line_type) do
     tokens = lex_line(line)
     time = cannonicalize_line_time(tokens["time"])
@@ -85,6 +81,11 @@ defmodule Airweb.Reader do
     {:ok, {time, tag, line_type, chunk_tag}}
   end
 
+  defp lex_line(line) do
+    Regex.named_captures(@lex_re, line)
+  end
+
+  # change :no_tag to :no_chunk
   defp meta_chunk(tokens) do
     case Map.get(tokens, "chunk") do
       "" -> :no_tag

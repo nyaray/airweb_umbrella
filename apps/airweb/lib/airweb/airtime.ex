@@ -18,12 +18,10 @@ defmodule Airweb.AirTime do
     |> Summary.externalize()
   end
 
-  def reduce_line(line, {state, prev_line_num}) do
+  def reduce_line(line, {prev_state, prev_line}) do
     result = Reader.process_line(line)
-    line_num = prev_line_num + 1
-    # TODO pass line_num to handle_reduce_line
-    {action, state} = handle_reduce_line(state, result)
-    {action, {state, line_num}}
+    {action, state} = handle_reduce_line(prev_state, result)
+    {action, {state, prev_line + 1}}
   end
 
   def build_output({chunk_sums, tag_sums, chunk_tag_sums, week_total}) do
