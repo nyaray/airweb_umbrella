@@ -31,6 +31,7 @@
 <div class="row">
   <div class="col-lg-12">
     <h4>Sammanställning</h4>
+    <p>Antal rader: <%= if assigns[:num_lines] do @num_lines else "-" end %></p>
     <textarea rows="20" style="width:100%;"><%= if assigns[:result] do @result end %></textarea>
   </div>
 </div>

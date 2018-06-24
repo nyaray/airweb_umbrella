@@ -21,8 +21,10 @@ defmodule Airweb.Web.HomeController do
     split_input = String.splitter(user_input, "\n")
 
     case AirTime.parse(split_input) do
-      {:ok, parse_result} -> [result: AirTime.build_output(parse_result)]
-      {:error, errors} -> [errors: serialize_errors(errors)]
+      {:ok, {num_lines, parse_result}} ->
+        [num_lines: num_lines, result: AirTime.build_output(parse_result)]
+      {:error, {num_lines, errors}} ->
+        [num_lines: num_lines, errors: serialize_errors(errors)]
     end
   end
 

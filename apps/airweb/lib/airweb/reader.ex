@@ -15,7 +15,7 @@ defmodule Airweb.Reader do
   @doc ~S"""
   Parses a timesheet item expected to contain the following parts:
 
-  [[chunk-tag] ][range-or-interval][[,] line-tag]
+  [chunk-tag] [range-or-interval][[,|\s+]line-tag]
 
       iex> Airweb.Reader.process_line("Må 08:15-11:45, Bar")
       {:ok, {{:range, ["08:15", "11:45"]}, "Bar", :start, "Må"}}
@@ -48,9 +48,19 @@ defmodule Airweb.Reader do
     with :ok <- check_line_length(line),
          {:ok, line_type} <- check_line_format(line) do
       build_meta(line, line_type)
+    else
+      :halt -> :halt
+      err = {:error, reason} ->
+        Logger.warn([
+          "Input error: ",
+          inspect(reason),
+          " (", inspect(dirty_line), ")"
+        ])
+        err
     end
   end
 
+  # TODO change to :skip and handle downstream
   defp check_line_length(""), do: :halt
   defp check_line_length(_), do: :ok
 
