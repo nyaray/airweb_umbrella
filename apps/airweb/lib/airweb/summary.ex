@@ -16,7 +16,7 @@ defmodule Airweb.Summary do
   end
 
   def push_error(s = %SummaryState{}, {:error, reason}) do
-      SummaryState.push_error(s, reason)
+    SummaryState.push_error(s, reason)
   end
 
   def externalize({state = %SummaryState{:errors => errors}, num_lines}) do

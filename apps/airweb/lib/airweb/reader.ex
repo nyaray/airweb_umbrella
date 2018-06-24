@@ -37,13 +37,18 @@ defmodule Airweb.Reader do
          {:ok, line_type} <- check_line_format(line) do
       build_meta(line, line_type)
     else
-      :halt -> :halt
+      :halt ->
+        :halt
+
       err = {:error, reason} ->
         Logger.warn([
           "Input error: ",
           inspect(reason),
-          " (", inspect(dirty_line), ")"
+          " (",
+          inspect(dirty_line),
+          ")"
         ])
+
         err
     end
   end

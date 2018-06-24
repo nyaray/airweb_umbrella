@@ -23,11 +23,11 @@ defmodule Airweb.Web.HomeController do
     case AirTime.parse(split_input) do
       {:ok, {num_lines, parse_result}} ->
         [num_lines: num_lines, result: AirTime.build_output(parse_result)]
+
       {:error, {num_lines, errors}} ->
         [num_lines: num_lines, errors: serialize_errors(errors)]
     end
   end
 
   defp serialize_errors(errors), do: Enum.map(errors, &inspect/1)
-
 end
