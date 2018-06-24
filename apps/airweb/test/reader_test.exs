@@ -5,54 +5,93 @@ defmodule Airweb.ReaderTest do
 
   alias Airweb.Reader
 
+  import ExUnit.CaptureLog
   import Airweb.TestGenerators
 
   doctest Airweb.Reader
 
-  test "that a valid start of a chunk is correctly processed" do
-    assert Reader.process_line("Ti 02:15, Bar") ===
-      {:ok, {{:interval, "02:15"}, "Bar", :start, "Ti"}}
+  describe "valid chunk-starts are accepted" do
+
+    test "comma separating tag from time" do
+      assert Reader.process_line("Ti 02:15,Bar") ===
+        {:ok, {{:interval, "02:15"}, "Bar", :start, "Ti"}}
+    end
+
+    test "space separating tag from time" do
+      assert Reader.process_line("Ti 02:15 Bar") ===
+        {:ok, {{:interval, "02:15"}, "Bar", :start, "Ti"}}
+    end
+
+    test "comma and space separating tag from time" do
+      assert Reader.process_line("Ti 02:15, Bar") ===
+        {:ok, {{:interval, "02:15"}, "Bar", :start, "Ti"}}
+    end
+
   end
 
-  test "that a chunk item is correctly processed" do
-    assert Reader.process_line("  14:30-17:15, Foo") ===
-      {:ok, {{:range, ["14:30", "17:15"]}, "Foo", :append, :no_tag}}
+  describe "valid chunk-entries are accepted" do
+
+    test "comma separating tag from space" do
+      assert Reader.process_line("  14:30-17:15,Foo") ===
+        {:ok, {{:range, ["14:30", "17:15"]}, "Foo", :append, :no_tag}}
+    end
+
+    test "space separating tag from time" do
+      assert Reader.process_line("  14:30-17:15 Foo") ===
+        {:ok, {{:range, ["14:30", "17:15"]}, "Foo", :append, :no_tag}}
+    end
+
+    test "comma and space separating tag from space" do
+      assert Reader.process_line("  14:30-17:15, Foo") ===
+        {:ok, {{:range, ["14:30", "17:15"]}, "Foo", :append, :no_tag}}
+    end
+
   end
 
-  test "that invalid input is rejected" do
-    assert Reader.process_line("On 08:15-11:45") ===
-      {:error, {:bad_format, "On 08:15-11:45"}}
+  describe "bad inputs are rejected" do
+
+    test "that chunk-starts without tags are invalid" do
+      capture_log(fn ->
+        assert Reader.process_line("On 08:15-11:45") ===
+          {:error, {:bad_format, "On 08:15-11:45"}}
+      end)
+    end
+
+    test "that chunk-entries begin with white space" do
+      capture_log(fn ->
+        assert Reader.process_line("08:15-11:45,aoeu") ===
+          {:error, {:bad_format, "08:15-11:45,aoeu"}}
+      end)
+    end
+
+    test "that chunk-starts without separation of tag and time are rejected" do
+      capture_log(fn ->
+        assert Reader.process_line("On 08:15-11:45aoeu") ===
+          {:error, {:bad_format, "On 08:15-11:45aoeu"}}
+      end)
+    end
+
+    test "that chunk-entries without separation of tag and time are rejected" do
+      capture_log(fn ->
+        assert Reader.process_line("  08:15-11:45aoeu") ===
+          {:error, {:bad_format, "  08:15-11:45aoeu"}}
+      end)
+    end
+
+    test "that chunk starts/entries that are malformed are rejected" do
+      capture_log(fn ->
+        assert Reader.process_line("08:15-11:45,aoeu") ===
+          {:error, {:bad_format, "08:15-11:45,aoeu"}}
+      end)
+    end
   end
 
   property "process_line parses input correctly" do
-    time = gen all h <- integer(8..15), do: h
-    duration = gen all d <- integer(2..4), do: d
-    minute = gen all m <- member_of(["00", "15", "30", "45"]), do: m
-
-    labels =
-      StreamData.one_of([
-        StreamData.tuple({ # chunk => tag present
-          StreamData.constant(:start),
-          StreamData.string(Enum.concat([?a..?z, ?A..?Z]), min_length: 1, max_length: 3),
-          StreamData.string(Enum.concat([?a..?z, ?A..?Z]), min_length: 1, max_length: 4)
-        }),
-        StreamData.tuple({ # no chunk => tag present
-          StreamData.constant(:append),
-          StreamData.constant(:no_tag),
-          StreamData.string(Enum.concat([?a..?z, ?A..?Z]), min_length: 1, max_length: 4)
-        }),
-        StreamData.tuple({ # no chunk => tag absent
-          StreamData.constant(:append),
-          StreamData.constant(:no_tag),
-          StreamData.constant("")
-        })
-      ])
-
-    check all t1 <- time,
-              d <- duration,
-              m1 <- minute,
-              m2 <- minute,
-              {flag, c, tag} <- labels,
+    check all t1 <- start_time(),
+              d <- duration_time(),
+              m1 <- quarter_time(),
+              m2 <- quarter_time(),
+              {flag, c, tag} <- labels(),
               chunk_pad <- string([9, 32], min_length: 1, max_length: 2),
               tag_pad <- string([9, 32], max_length: 2)
     do

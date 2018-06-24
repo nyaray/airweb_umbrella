@@ -20,23 +20,11 @@ defmodule Airweb.Reader do
       iex> Airweb.Reader.process_line("Må 08:15-11:45, Bar")
       {:ok, {{:range, ["08:15", "11:45"]}, "Bar", :start, "Må"}}
 
-      iex> Airweb.Reader.process_line("Må 08:15-11:45 Bar")
-      {:ok, {{:range, ["08:15", "11:45"]}, "Bar", :start, "Må"}}
-
-      iex> Airweb.Reader.process_line("  10:30-14:15, Bar")
-      {:ok, {{:range, ["10:30", "14:15"]}, "Bar", :append, :no_tag}}
-
-      iex> Airweb.Reader.process_line("  10:30-14:15 Bar")
-      {:ok, {{:range, ["10:30", "14:15"]}, "Bar", :append, :no_tag}}
-
       iex> Airweb.Reader.process_line("  10:30-14:15")
       {:ok, {{:range, ["10:30", "14:15"]}, "", :append, :no_tag}}
 
-      iex> Airweb.Reader.process_line("  14:00")
-      {:ok, {{:interval, "14:00"}, "", :append, :no_tag}}
-
-      iex> Airweb.Reader.process_line("14:00")
-      {:error, {:bad_format, "14:00"}}
+      iex> Airweb.Reader.process_line("  14:00 Foo")
+      {:ok, {{:interval, "14:00"}, "Foo", :append, :no_tag}}
 
   """
   def process_line(dirty_line) do
