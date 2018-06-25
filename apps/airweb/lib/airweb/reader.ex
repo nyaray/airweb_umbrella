@@ -44,33 +44,24 @@ defmodule Airweb.Reader do
 
   """
   def process_line(dirty_line) do
-    Logger.debug(["process_line dirty:", inspect(dirty_line)])
     line = String.trim_trailing(dirty_line)
-    Logger.debug(["process_line clean:", inspect(line)])
+    Logger.debug(["process_line cleaned:", inspect(line)])
 
     with :ok <- check_line_length(line),
          {:ok, line_type} <- check_line_type(line) do
       tokens = lex_line(line)
       {:ok, ReaderEntry.create_entry(tokens, line_type)}
     else
-      :halt ->
-        :halt
+      atom when atom === :skip or atom === :halt ->
+        atom
 
       err = {:error, reason} ->
-        Logger.warn([
-          "Input error: ",
-          inspect(reason),
-          " (",
-          inspect(dirty_line),
-          ")"
-        ])
-
+        Logger.warn(["Input error: ", inspect(reason), " (", inspect(dirty_line), ")"])
         err
     end
   end
 
-  # TODO change to :skip and handle downstream
-  defp check_line_length(""), do: :halt
+  defp check_line_length(""), do: :skip
   defp check_line_length(_), do: :ok
 
   defp check_line_type(line) do

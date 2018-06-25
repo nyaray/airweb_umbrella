@@ -11,6 +11,9 @@ defmodule Airweb.AirTime do
       iex> "Må 08:15-11:45, Foo\n  12:30-17:00" |> String.splitter("\n") |> Airweb.AirTime.parse()
       {:ok, {2, {[{"Må", 8.0}], [{"Foo", 8.0}], [%{"Foo" => 8.0}], 8.0}}}
 
+      iex> "Må 08:15-11:45, Foo\n\n  12:30-17:00" |> String.splitter("\n") |> Airweb.AirTime.parse()
+      {:ok, {3, {[{"Må", 8.0}], [{"Foo", 8.0}], [%{"Foo" => 8.0}], 8.0}}}
+
   """
   def parse(input) do
     input
@@ -44,9 +47,8 @@ defmodule Airweb.AirTime do
     {:cont, Summary.push_error(state, error)}
   end
 
-  defp handle_reduce_line(state, :halt) do
-    {:halt, state}
-  end
+  defp handle_reduce_line(state, :skip), do: {:cont, state}
+  defp handle_reduce_line(state, :halt), do: {:halt, state}
 
   defp build_daily_output(sums), do: ["daily hours: ", inspect(sums)]
 
