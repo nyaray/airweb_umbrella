@@ -84,5 +84,4 @@ defmodule Airweb.Reader do
   defp lex_line(line) do
     Regex.named_captures(@lex_re, line)
   end
-
 end
