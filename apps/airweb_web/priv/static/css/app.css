@@ -1,4 +1,6 @@
-/* This file is for your main application css. *//* Includes Bootstrap as well as some default style for the starter
+/* This file is for your main application css. */
+
+/* Includes Bootstrap as well as some default style for the starter
  * application. This can be safely deleted to start fresh.
  */
 
@@ -10,8 +12,14 @@
 
 /* Space out content a bit */
 body, form, ul, table {
+  /*
   margin-top: 20px;
   margin-bottom: 20px;
+  */
+}
+
+textarea {
+  margin: 15px 0;
 }
 
 /* Phoenix flash messages */
