@@ -38,13 +38,13 @@ defmodule Airweb.TestGenerators do
       }),
       StreamData.tuple({ # no chunk => tag present
         StreamData.constant(:append),
-        StreamData.constant(:no_tag),
+        StreamData.constant(:no_chunk),
         StreamData.string(Enum.concat([?a..?z, ?A..?Z]), min_length: 1, max_length: 4)
       }),
       StreamData.tuple({ # no chunk => tag absent
         StreamData.constant(:append),
-        StreamData.constant(:no_tag),
-        StreamData.constant("")
+        StreamData.constant(:no_chunk),
+        StreamData.constant(:no_tag)
       })
     ])
   end

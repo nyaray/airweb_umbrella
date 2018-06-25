@@ -7,17 +7,17 @@ defmodule Airweb.SummaryState do
             current_chunk: [],
             current_chunk_tags: %{},
             errors: [],
-            latest_chunk_tag: :no_tag,
+            latest_chunk: :no_chunk,
             latest_tag: :no_tag,
             tag_chunks: %{}
 
-  def create_entry(diff, tag, chunk_meta) do
-    %Entry{:chunk_meta => chunk_meta, :diff => diff, :tag => tag}
+  def create_entry(diff, tag, chunk, type) do
+    %Entry{:chunk => chunk, :diff => diff, :tag => tag, :type => type}
   end
 
   def push_entry(s = %SummaryState{}, e = %Entry{}) do
     s
-    |> rotate_chunk(e.chunk_meta)
+    |> rotate_chunk(e)
     |> push_chunk_diff(e.diff)
     |> push_tag_diff(e.tag, e.diff)
   end
@@ -28,7 +28,7 @@ defmodule Airweb.SummaryState do
 
   def sum_chunks(s = %SummaryState{}) do
     current = Enum.reverse(s.current_chunk)
-    chunks = Enum.reverse([{s.latest_chunk_tag, current} | s.chunks])
+    chunks = Enum.reverse([{s.latest_chunk, current} | s.chunks])
 
     Enum.map(
       chunks,
@@ -45,17 +45,18 @@ defmodule Airweb.SummaryState do
     |> Enum.reverse()
   end
 
-  defp rotate_chunk(s = %SummaryState{}, {:append, _chunk_tag}), do: s
+  defp rotate_chunk(s = %SummaryState{}, %Entry{:type => :append}), do: s
 
-  defp rotate_chunk(s = %SummaryState{:current_chunk => []}, chunk_meta) do
-    case chunk_meta do
-      {:start, chunk_tag} -> %SummaryState{s | :latest_chunk_tag => chunk_tag}
-      {:append, _chunk_tag} -> s
-    end
+  defp rotate_chunk(s = %SummaryState{:current_chunk => []}, e = %Entry{:type => :start}) do
+    %SummaryState{s | :latest_chunk => e.chunk}
   end
 
-  defp rotate_chunk(s = %SummaryState{}, {:start, chunk_tag}) do
-    chunk = {s.latest_chunk_tag, Enum.reverse(s.current_chunk)}
+  defp rotate_chunk(s = %SummaryState{:current_chunk => []}, %Entry{:type => :append}) do
+    s
+  end
+
+  defp rotate_chunk(s = %SummaryState{}, %Entry{:type => :start, :chunk => chunk_tag}) do
+    chunk = {s.latest_chunk, Enum.reverse(s.current_chunk)}
     chunks = [chunk | s.chunks]
     chunk_tags = [s.current_chunk_tags | s.chunk_tags]
 
@@ -65,7 +66,7 @@ defmodule Airweb.SummaryState do
         :chunk_tags => chunk_tags,
         :current_chunk => [],
         :current_chunk_tags => %{},
-        :latest_chunk_tag => chunk_tag
+        :latest_chunk => chunk_tag
     }
   end
 

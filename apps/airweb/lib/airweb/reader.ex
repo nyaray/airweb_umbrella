@@ -1,4 +1,6 @@
 defmodule Airweb.Reader do
+  alias Airweb.ReaderEntry, as: ReaderEntry
+
   require Logger
 
   # lexing rules
@@ -16,25 +18,40 @@ defmodule Airweb.Reader do
 
   [chunk-tag] [range-or-interval][[,|\s+]line-tag]
 
-      iex> Airweb.Reader.process_line("Må 08:15-11:45, Bar")
-      {:ok, {{:range, ["08:15", "11:45"]}, "Bar", :start, "Må"}}
+      iex> Reader.process_line("Må 08:15-11:45, Bar")
+      {:ok, %Airweb.ReaderEntry{
+              chunk: "Må",
+              tag: "Bar",
+              time: {:range, ["08:15", "11:45"]},
+              type: :start
+            }}
 
-      iex> Airweb.Reader.process_line("  10:30-14:15")
-      {:ok, {{:range, ["10:30", "14:15"]}, "", :append, :no_tag}}
+      iex> Reader.process_line("  10:30-14:15")
+      {:ok, %Airweb.ReaderEntry{
+              chunk: :no_chunk,
+              tag: :no_tag,
+              time: {:range, ["10:30", "14:15"]},
+              type: :append
+            }}
 
-      iex> Airweb.Reader.process_line("  14:00 Foo")
-      {:ok, {{:interval, "14:00"}, "Foo", :append, :no_tag}}
+      iex> Reader.process_line("  14:00 Foo")
+      {:ok, %Airweb.ReaderEntry{
+              chunk: :no_chunk,
+              tag: "Foo",
+              time: {:interval, "14:00"},
+              type: :append
+            }}
 
   """
   def process_line(dirty_line) do
     Logger.debug(["process_line dirty:", inspect(dirty_line)])
     line = String.trim_trailing(dirty_line)
-
     Logger.debug(["process_line clean:", inspect(line)])
 
     with :ok <- check_line_length(line),
-         {:ok, line_type} <- check_line_format(line) do
-      build_meta(line, line_type)
+         {:ok, line_type} <- check_line_type(line) do
+      tokens = lex_line(line)
+      {:ok, ReaderEntry.create_entry(tokens, line_type)}
     else
       :halt ->
         :halt
@@ -56,7 +73,7 @@ defmodule Airweb.Reader do
   defp check_line_length(""), do: :halt
   defp check_line_length(_), do: :ok
 
-  defp check_line_format(line) do
+  defp check_line_type(line) do
     cond do
       line =~ @line_chunk_start_re -> {:ok, :start}
       line =~ @line_chunk_append_re -> {:ok, :append}
@@ -64,32 +81,8 @@ defmodule Airweb.Reader do
     end
   end
 
-  defp cannonicalize_line_time(line) do
-    case String.split(line, "-") do
-      [interval] -> {:interval, interval}
-      r = [_start, _stop] -> {:range, r}
-    end
-  end
-
-  # TODO create struct for result
-  defp build_meta(line, line_type) do
-    tokens = lex_line(line)
-    time = cannonicalize_line_time(tokens["time"])
-    tag = String.trim(tokens["tag"])
-    chunk_tag = meta_chunk(tokens)
-
-    {:ok, {time, tag, line_type, chunk_tag}}
-  end
-
   defp lex_line(line) do
     Regex.named_captures(@lex_re, line)
   end
 
-  # change :no_tag to :no_chunk
-  defp meta_chunk(tokens) do
-    case Map.get(tokens, "chunk") do
-      "" -> :no_tag
-      chunk_tag -> chunk_tag |> String.trim()
-    end
-  end
 end

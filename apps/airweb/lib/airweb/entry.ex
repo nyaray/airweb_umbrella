@@ -1,5 +1,6 @@
 defmodule Airweb.Entry do
-  defstruct chunk_meta: false,
-            diff: nil,
-            tag: nil
+  defstruct chunk: :no_chunk,
+            diff: :missing,
+            tag: :no_tag,
+            type: :append
 end

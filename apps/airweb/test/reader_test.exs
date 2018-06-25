@@ -14,17 +14,17 @@ defmodule Airweb.ReaderTest do
 
     test "comma separating tag from time" do
       assert Reader.process_line("Ti 02:15,Bar") ===
-        {:ok, {{:interval, "02:15"}, "Bar", :start, "Ti"}}
+        {:ok, %Airweb.ReaderEntry{chunk: "Ti", tag: "Bar", time: {:interval, "02:15"}, type: :start}}
     end
 
     test "space separating tag from time" do
       assert Reader.process_line("Ti 02:15 Bar") ===
-        {:ok, {{:interval, "02:15"}, "Bar", :start, "Ti"}}
+        {:ok, %Airweb.ReaderEntry{chunk: "Ti", tag: "Bar", time: {:interval, "02:15"}, type: :start}}
     end
 
     test "comma and space separating tag from time" do
       assert Reader.process_line("Ti 02:15, Bar") ===
-        {:ok, {{:interval, "02:15"}, "Bar", :start, "Ti"}}
+        {:ok, %Airweb.ReaderEntry{chunk: "Ti", tag: "Bar", time: {:interval, "02:15"}, type: :start}}
     end
 
   end
@@ -33,17 +33,17 @@ defmodule Airweb.ReaderTest do
 
     test "comma separating tag from space" do
       assert Reader.process_line("  14:30-17:15,Foo") ===
-        {:ok, {{:range, ["14:30", "17:15"]}, "Foo", :append, :no_tag}}
+        {:ok, %Airweb.ReaderEntry{chunk: :no_chunk, tag: "Foo", time: {:range, ["14:30", "17:15"]}, type: :append}}
     end
 
     test "space separating tag from time" do
       assert Reader.process_line("  14:30-17:15 Foo") ===
-        {:ok, {{:range, ["14:30", "17:15"]}, "Foo", :append, :no_tag}}
+        {:ok, %Airweb.ReaderEntry{chunk: :no_chunk, tag: "Foo", time: {:range, ["14:30", "17:15"]}, type: :append}}
     end
 
     test "comma and space separating tag from space" do
       assert Reader.process_line("  14:30-17:15, Foo") ===
-        {:ok, {{:range, ["14:30", "17:15"]}, "Foo", :append, :no_tag}}
+        {:ok, %Airweb.ReaderEntry{chunk: :no_chunk, tag: "Foo", time: {:range, ["14:30", "17:15"]}, type: :append}}
     end
 
   end
@@ -91,19 +91,22 @@ defmodule Airweb.ReaderTest do
               d <- duration_time(),
               m1 <- quarter_time(),
               m2 <- quarter_time(),
-              {flag, c, tag} <- labels(),
+              {flag, c, t} <- labels(),
               chunk_pad <- string([9, 32], min_length: 1, max_length: 2),
               tag_pad <- string([9, 32], max_length: 2)
     do
       from = t_string(t1, m1)
       to = t_string((t1 + d), m2)
 
-      chunk = if c === :no_tag, do: "", else: t_strip(c)
-      tag_pad = if tag_pad === "" and tag !== "", do: ",", else: tag_pad
+      # TODO extract comma/space/both separation into prop
+      # (one_of([tuple(), tuple()]))
+      tag_pad = if tag_pad === "" and t !== :no_tag, do: ",", else: tag_pad
 
-      input = chunk <> chunk_pad <> from <> "-" <> to <> tag_pad <> tag
+      input_chunk = if c === :no_chunk, do: "", else: c
+      input_tag = if t === :no_tag, do: "", else: t
+      input = input_chunk <> chunk_pad <> from <> "-" <> to <> tag_pad <> input_tag
       assert Reader.process_line(input) ===
-        {:ok, {{:range, [from, to]}, tag, flag, c}}
+        {:ok, %Airweb.ReaderEntry{chunk: c, tag: t, time: {:range, [from, to]}, type: flag}}
     end
   end
 
