@@ -1,7 +1,13 @@
 require Logger
 
 defmodule Airweb.Summary do
+  alias Airweb.Summary, as: Summary
   alias Airweb.SummaryState, as: SummaryState
+
+  defstruct chunk_sums: [],
+            chunk_tag_totals: [],
+            tag_sums: [],
+            week_total: 0
 
   def externalize({state = %SummaryState{:errors => errors}, num_lines}) do
     case errors do
@@ -29,7 +35,9 @@ defmodule Airweb.Summary do
     ^week_total = tag_total
 
     # TODO struct me, plz
-    {chunk_sums, tag_sums, chunk_tag_totals, week_total}
+    #{chunk_sums, tag_sums, chunk_tag_totals, week_total}
+    %Summary{:chunk_sums => chunk_sums, :chunk_tag_totals => chunk_tag_totals,
+      :tag_sums => tag_sums, :week_total => week_total}
   end
 
   defp tally_tags(tag_sums) do

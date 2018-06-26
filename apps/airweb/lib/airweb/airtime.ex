@@ -12,10 +12,20 @@ defmodule Airweb.AirTime do
   both projects and days.
 
       iex> "Må 08:15-11:45, Foo\n  12:30-17:00" |> String.splitter("\n") |> Airweb.AirTime.parse()
-      {:ok, {2, {[{"Må", 8.0}], [{"Foo", 8.0}], [%{"Foo" => 8.0}], 8.0}}}
+      {:ok, {2, %Airweb.Summary{
+               chunk_sums: [{"Må", 8.0}],
+               chunk_tag_totals: [%{"Foo" => 8.0}],
+               tag_sums: [{"Foo", 8.0}],
+               week_total: 8.0
+             }}}
 
       iex> "Må 08:15-11:45, Foo\n\n  12:30-17:00" |> String.splitter("\n") |> Airweb.AirTime.parse()
-      {:ok, {3, {[{"Må", 8.0}], [{"Foo", 8.0}], [%{"Foo" => 8.0}], 8.0}}}
+      {:ok, {3, %Airweb.Summary{
+               chunk_sums: [{"Må", 8.0}],
+               chunk_tag_totals: [%{"Foo" => 8.0}],
+               tag_sums: [{"Foo", 8.0}],
+               week_total: 8.0
+             }}}
 
   """
   def parse(input) do

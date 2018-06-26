@@ -19,12 +19,7 @@ defmodule Airweb.AirTimeTest do
 
     assert AirTime.parse(input) ==
       {:ok, {2,
-        {
-          [{"Må", 8.0}, {"Ti", 4.0}], # by day
-          [{"Bar", 4.0}, {"Foo", 8.0}], # by project
-          [%{"Foo" => 8.0}, %{"Bar" => 4.0}], # daily project view
-          12.0 # hours worked
-        }
+        %Airweb.Summary{chunk_sums: [{"Må", 8.0}, {"Ti", 4.0}], chunk_tag_totals: [%{"Foo" => 8.0}, %{"Bar" => 4.0}], tag_sums: [{"Bar", 4.0}, {"Foo", 8.0}], week_total: 12.0}
       }}
   end
 
@@ -38,12 +33,7 @@ defmodule Airweb.AirTimeTest do
 
     assert AirTime.parse(input) ==
       {:ok, {3,
-        {
-          [{"Må", 8.0}, {"Ti", 7.0}],                       # by day
-          [{"Bar", 4.0}, {"Foo", 11.0}],                    # by project
-          [%{"Foo" => 8.0}, %{"Bar" => 4.0, "Foo" => 3.0}], # daily project view
-          15.0                                              # hours worked
-        }
+        %Airweb.Summary{chunk_sums: [{"Må", 8.0}, {"Ti", 7.0}], chunk_tag_totals: [%{"Foo" => 8.0}, %{"Bar" => 4.0, "Foo" => 3.0}], tag_sums: [{"Bar", 4.0}, {"Foo", 11.0}], week_total: 15.0}
       }}
   end
 
@@ -57,12 +47,7 @@ defmodule Airweb.AirTimeTest do
 
     assert AirTime.parse(input) ==
       {:ok, {3,
-        {
-          [{"Må", 11.0}, {"Ti", 4.0}],                      # by day
-          [{"Bar", 12.0}, {"Foo", 3.0}],                    # by project
-          [%{"Foo" => 3.0, "Bar" => 8.0}, %{"Bar" => 4.0}], # daily project view
-          15.0                                              # hours worked
-        }
+        %Airweb.Summary{chunk_sums: [{"Må", 11.0}, {"Ti", 4.0}], chunk_tag_totals: [%{"Bar" => 8.0, "Foo" => 3.0}, %{"Bar" => 4.0}], tag_sums: [{"Bar", 12.0}, {"Foo", 3.0}], week_total: 15.0}
       }}
   end
 
@@ -76,12 +61,7 @@ defmodule Airweb.AirTimeTest do
 
     assert AirTime.parse(input) ==
       {:ok, {3,
-        {
-          [{"Må", 11.0}, {"Ti", 4.0}],
-          [{"Bar", 12.0}, {"Foo", 3.0}],
-          [%{"Bar" => 8.0, "Foo" => 3.0}, %{"Bar" => 4.0}],
-          15.0
-        }
+        %Airweb.Summary{chunk_sums: [{"Må", 11.0}, {"Ti", 4.0}], chunk_tag_totals: [%{"Bar" => 8.0, "Foo" => 3.0}, %{"Bar" => 4.0}], tag_sums: [{"Bar", 12.0}, {"Foo", 3.0}], week_total: 15.0}
       }}
   end
 
@@ -96,12 +76,7 @@ defmodule Airweb.AirTimeTest do
 
     assert AirTime.parse(input) ==
       {:ok, {4,
-        {
-          [{"Må", 11.0}, {"Ti", 8.0}],
-          [{"Bar", 12.0}, {"Foo", 7.0}],
-          [%{"Bar" => 8.0, "Foo" => 3.0}, %{"Bar" => 4.0, "Foo" => 4.0}],
-          19.0
-        }
+        %Airweb.Summary{chunk_sums: [{"Må", 11.0}, {"Ti", 8.0}], chunk_tag_totals: [%{"Bar" => 8.0, "Foo" => 3.0}, %{"Bar" => 4.0, "Foo" => 4.0}], tag_sums: [{"Bar", 12.0}, {"Foo", 7.0}], week_total: 19.0}
       }}
   end
 
@@ -115,12 +90,7 @@ defmodule Airweb.AirTimeTest do
 
     assert AirTime.parse(input) ==
       {:ok, {3,
-        {
-          [{"Må", 11.0}, {"Ti", 4.0}],
-          [{"Bar", 12.0}, {"Foo", 3.0}],
-          [%{"Bar" => 8.0, "Foo" => 3.0}, %{"Bar" => 4.0}],
-          15.0
-        }
+        %Airweb.Summary{chunk_sums: [{"Må", 11.0}, {"Ti", 4.0}], chunk_tag_totals: [%{"Bar" => 8.0, "Foo" => 3.0}, %{"Bar" => 4.0}], tag_sums: [{"Bar", 12.0}, {"Foo", 3.0}], week_total: 15.0}
       }}
   end
 
@@ -134,12 +104,7 @@ defmodule Airweb.AirTimeTest do
 
     assert AirTime.parse(input) ==
       {:ok, {3,
-        {
-          [{"Må", 11.0}, {"Ti", 4.0}],
-          [{"Bar", 12.0}, {"Foo", 3.0}],
-          [%{"Bar" => 8.0, "Foo" => 3.0}, %{"Bar" => 4.0}],
-          15.0
-        }
+        %Airweb.Summary{chunk_sums: [{"Må", 11.0}, {"Ti", 4.0}], chunk_tag_totals: [%{"Bar" => 8.0, "Foo" => 3.0}, %{"Bar" => 4.0}], tag_sums: [{"Bar", 12.0}, {"Foo", 3.0}], week_total: 15.0}
       }}
   end
 
