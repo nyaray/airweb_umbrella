@@ -86,8 +86,6 @@ defmodule Airweb.SummaryState do
     }
   end
 
-  # tags
-
   defp update_tag_chunk(tag_chunks, latest_tag, diff) do
     tag_chunk = Map.get(tag_chunks, latest_tag, [])
     Map.put(tag_chunks, latest_tag, [diff | tag_chunk])

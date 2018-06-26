@@ -2,21 +2,6 @@ require Logger
 
 defmodule Airweb.Summary do
   alias Airweb.SummaryState, as: SummaryState
-  alias Airweb.TimeRange, as: TimeRange
-  alias Airweb.ReaderEntry, as: ReaderEntry
-
-  def new(), do: %SummaryState{}
-
-  def push_entry(s = %SummaryState{}, r = %ReaderEntry{}) do
-    {:ok, diff} = parse_time(r.time)
-    tag = derive_tag(r.tag, s.latest_tag)
-    entry = SummaryState.create_entry(diff, tag, r.chunk, r.type)
-    SummaryState.push_entry(s, entry)
-  end
-
-  def push_error(s = %SummaryState{}, {:error, reason}) do
-    SummaryState.push_error(s, reason)
-  end
 
   def externalize({state = %SummaryState{:errors => errors}, num_lines}) do
     case errors do
@@ -24,12 +9,6 @@ defmodule Airweb.Summary do
       _ -> {:error, {num_lines, Enum.reverse(errors)}}
     end
   end
-
-  defp parse_time({:interval, i}), do: TimeRange.from_interval(i)
-  defp parse_time({:range, r}), do: TimeRange.from_range(r)
-
-  defp derive_tag(:no_tag, latest_tag), do: latest_tag
-  defp derive_tag(t, _latest_tag), do: String.trim(t)
 
   # TODO create struct for result marshalling
   defp summarize(state = %SummaryState{}) do
