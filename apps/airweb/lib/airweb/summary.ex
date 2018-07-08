@@ -16,7 +16,6 @@ defmodule Airweb.Summary do
     end
   end
 
-  # TODO create struct for result marshalling
   defp summarize(state = %SummaryState{}) do
     Logger.debug(fn -> "[summarize]\n#{inspect(state)}" end)
 
@@ -34,10 +33,12 @@ defmodule Airweb.Summary do
     # TODO check chunk_tag_sums
     ^week_total = tag_total
 
-    # TODO struct me, plz
-    #{chunk_sums, tag_sums, chunk_tag_totals, week_total}
-    %Summary{:chunk_sums => chunk_sums, :chunk_tag_totals => chunk_tag_totals,
-      :tag_sums => tag_sums, :week_total => week_total}
+    %Summary{
+      :chunk_sums => chunk_sums,
+      :chunk_tag_totals => chunk_tag_totals,
+      :tag_sums => tag_sums,
+      :week_total => week_total
+    }
   end
 
   defp tally_tags(tag_sums) do

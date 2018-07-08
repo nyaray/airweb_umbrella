@@ -40,13 +40,14 @@ defmodule Airweb.AirTime do
     {action, {state, prev_line + 1}}
   end
 
-  def build_output({chunk_sums, tag_sums, chunk_tag_sums, week_total}) do
+  #def build_output({chunk_sums, tag_sums, chunk_tag_sums, week_total}) do
+  def build_output(s = %Summary{}) do
     [
       "",
-      build_daily_output(chunk_sums),
-      build_week_output(week_total),
-      build_tags_output(tag_sums),
-      build_chunk_tags_output(chunk_tag_sums)
+      build_daily_output(s.chunk_sums),
+      build_week_output(s.week_total),
+      build_tags_output(s.tag_sums),
+      build_chunk_tags_output(s.chunk_tag_totals)
     ]
     |> Enum.intersperse("\n")
   end
@@ -55,7 +56,6 @@ defmodule Airweb.AirTime do
     {:cont, push_entry(state, result)}
   end
 
-  # TODO accept line_num in args and rewrap error
   defp handle_reduce_line(state, error = {:error, _reason}) do
     {:cont, push_error(state, error)}
   end

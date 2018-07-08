@@ -73,8 +73,6 @@ defmodule Airweb.TestGenerators do
     Enum.map(sheet, fn ({k,v}) -> k <> " " <> serialize_chunk(v) end)
     #|> Enum.join("\n")
   end
-
-
 end
 
 ExUnit.start()
