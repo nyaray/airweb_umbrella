@@ -93,14 +93,14 @@ defmodule Airweb.ReaderTest do
               m2 <- quarter_time(),
               {flag, c, t} <- labels(),
               chunk_pad <- string([9, 32], min_length: 1, max_length: 2),
-              tag_pad <- string([9, 32], max_length: 2)
+              tag_pad <- string([9, 32], min_length: 0, max_length: 3)
     do
       from = t_string(t1, m1)
       to = t_string((t1 + d), m2)
 
       # TODO extract comma/space/both separation into prop
       # (one_of([tuple(), tuple()]))
-      tag_pad = if tag_pad === "" and t !== :no_tag, do: ",", else: tag_pad
+      tag_pad = if tag_pad === "", do: ",", else: tag_pad
 
       input_chunk = if c === :no_chunk, do: "", else: c
       input_tag = if t === :no_tag, do: "", else: t
