@@ -80,18 +80,18 @@ defmodule Airweb.AirTime do
     SummaryState.push_error(s, reason)
   end
 
-  defp build_daily_output(sums), do: ["daily hours: ", inspect(sums)]
+  defp build_daily_output(sums), do: ["Daily hours: ", inspect(sums)]
 
   defp build_week_output(total) do
     total_out = inspect(total)
     rem_out = inspect(40 - total)
-    ["week total:  ", total_out, " (", rem_out, " remaining)"]
+    ["Week total:  ", total_out, " (", rem_out, " remaining)"]
   end
 
-  defp build_tags_output(sums), do: ["tag sum:     \n  ", interspect(sums)]
+  defp build_tags_output(sums), do: ["Tag sum:     \n  ", interspect(sums)]
 
   defp build_chunk_tags_output(chunk_tag_sums) do
-    ["daily tag sums:\n  ", interspect(chunk_tag_sums)]
+    ["Daily tag sums:\n  ", interspect(chunk_tag_sums)]
   end
 
   defp interspect(enumerable) do
