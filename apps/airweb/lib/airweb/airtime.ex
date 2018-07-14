@@ -40,7 +40,6 @@ defmodule Airweb.AirTime do
     {action, {state, prev_line + 1}}
   end
 
-  #def build_output({chunk_sums, tag_sums, chunk_tag_sums, week_total}) do
   def build_output(s = %Summary{}) do
     [
       "",
