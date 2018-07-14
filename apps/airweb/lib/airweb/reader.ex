@@ -11,7 +11,7 @@ defmodule Airweb.Reader do
 
   @lex_re ~r/(#{@chunk_re}\s+)?(#{@time_re}(#{@tag_separator_re}(#{@tag_re})?)?)$/iu
   @line_chunk_start_re ~r/#{@chunk_re}\s+#{@time_re}#{@tag_separator_re}#{@tag_re}/iu
-  @line_chunk_append_re ~r/^\s+#{@time_re}(#{@tag_separator_re}(\S.*)?)?$/iu
+  @line_chunk_append_re ~r/^(\s+)?#{@time_re}(#{@tag_separator_re}(\S.*)?)?$/iu
 
   @doc ~S"""
   Parses a timesheet item expected to contain the following parts:

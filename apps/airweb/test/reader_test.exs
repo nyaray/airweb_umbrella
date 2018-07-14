@@ -46,6 +46,15 @@ defmodule Airweb.ReaderTest do
         {:ok, %Airweb.ReaderEntry{chunk: :no_chunk, tag: "Foo", time: {:range, ["14:30", "17:15"]}, type: :append}}
     end
 
+    test "that chunk entries may begin without white space (1)" do
+      assert Reader.process_line("08:15-11:45,aoeu") ===
+        {:ok, %Airweb.ReaderEntry{chunk: :no_chunk, tag: "aoeu", time: {:range, ["08:15", "11:45"]}, type: :append}}
+    end
+
+    test "that chunk-entries may begin without white space (2)" do
+      assert Reader.process_line("08:15-11:45, aoeu") ===
+        {:ok, %Airweb.ReaderEntry{chunk: :no_chunk, tag: "aoeu", time: {:range, ["08:15", "11:45"]}, type: :append}}
+    end
   end
 
   describe "bad inputs are rejected" do
@@ -54,13 +63,6 @@ defmodule Airweb.ReaderTest do
       capture_log(fn ->
         assert Reader.process_line("On 08:15-11:45") ===
           {:error, {:bad_format, "On 08:15-11:45"}}
-      end)
-    end
-
-    test "that chunk-entries begin with white space" do
-      capture_log(fn ->
-        assert Reader.process_line("08:15-11:45,aoeu") ===
-          {:error, {:bad_format, "08:15-11:45,aoeu"}}
       end)
     end
 
@@ -75,13 +77,6 @@ defmodule Airweb.ReaderTest do
       capture_log(fn ->
         assert Reader.process_line("  08:15-11:45aoeu") ===
           {:error, {:bad_format, "  08:15-11:45aoeu"}}
-      end)
-    end
-
-    test "that chunk starts/entries that are malformed are rejected" do
-      capture_log(fn ->
-        assert Reader.process_line("08:15-11:45,aoeu") ===
-          {:error, {:bad_format, "08:15-11:45,aoeu"}}
       end)
     end
   end
